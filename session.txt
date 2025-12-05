@@ -1,0 +1,41 @@
+
+
+
+  Huawei Integrated Access Software (MA5608T).
+  Copyright(C) Huawei Technologies Co., Ltd. 2002-2013. All rights reserved.
+
+  -----------------------------------------------------------------------------
+  User last login information:
+  -----------------------------------------------------------------------------
+  Access Type : SSH 
+  IP-Address  : 10.11.104.4 ssh
+  Login  Time : 2025-10-27 12:20:19-03:00
+  Logout Time : 2025-10-27 12:20:39-03:00
+  -----------------------------------------------------------------------------
+
+MA5608T>
+
+MA5608T>
+
+MA5608T>screen-length0temporary
+        ^
+  % Unknown command, the error locates at '^'
+
+MA5608T>enable
+
+MA5608T#config
+
+MA5608T(config)#service-port vlan 150 gpon 0/0/15 ont 58 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+
+MA5608T(config)#interface gpon 0/0
+
+MA5608T(config-if-gpon-0/0)#ont ipconfig 15 58 ip-index 0 dhcp vlan 150 priority 2
+
+MA5608T(config-if-gpon-0/0)#ont tr069-server-config 15 58 profile-id 1
+
+MA5608T(config-if-gpon-0/0)#quit
+
+MA5608T(config)#
+
+MA5608T(config)#quit
