@@ -229,32 +229,59 @@ def validate_omci_output(conn, cmd, logger, max_retries=10):
 def check_onu_tr069_profile(conn, olt_name, slot, port, onu_id, logger):
     """
     Verifica si una ONU ya tiene un profile TR-069 asignado.
+    Consulta la OLT vía OMCI: display ont tr069-server-config PORT ONU_ID
+    Parsea el output para extraer el ProfileId y validar si es válido.
+    
     Retorna True si ya está configurada, False si no.
-    Compatible con OLTs Huawei y ZTE.
+    Compatible con OLTs Huawei. ZTE retorna False (sin soporte).
     """
     try:
         if olt_name != "ZTE C600":
-            # Para OLTs Huawei
+            # Para OLTs Huawei - Consulta a la OLT
             cmd = f"display ont tr069-server-config {port} {onu_id}"
             out = validate_omci_output(conn, cmd, logger)
             
-            # Buscar indicadores de que el profile existe
-            # Huawei retorna algo como "ProfileId: 1" si está configurado
-            if "ProfileId" in out or "Profile ID" in out or "profile-id" in out.lower():
-                logger(f"[SKIP] ONU {onu_id} ya tiene TR-069 configurado")
-                return True
-            else:
-                # Si no hay configuración TR-069, el comando retorna un output vacío o error
-                return False
+            # Parsear output para buscar un ProfileId asignado
+            # Formato esperado en Huawei: línea con "ProfileId" o "profile" seguido de ":", ": ", "=", etc.
+            # Ejemplo: "ProfileId : 2" o "Profile ID: 1" o similar
+            
+            # Buscar patrón: "profile" (case-insensitive) seguido de "id" y luego ":" o "="
+            # y capturar el número después
+            import re
+            
+            # Patrones posibles en output Huawei
+            patterns = [
+                r'ProfileId\s*[:=]\s*(\d+)',      # ProfileId : 1 o ProfileId=1
+                r'Profile\s+ID\s*[:=]\s*(\d+)',   # Profile ID : 1
+                r'profile-id\s+(\d+)',             # profile-id 1
+                r'profile\s+id\s*[:=]\s*(\d+)',   # profile id : 1 (case-insensitive)
+            ]
+            
+            for pattern in patterns:
+                match = re.search(pattern, out, re.IGNORECASE)
+                if match:
+                    profile_id = int(match.group(1))
+                    # Validar que sea un ProfileId válido (1 o 2 para Huawei)
+                    if profile_id in [1, 2]:
+                        logger(f"[SKIP] ONU {onu_id} ya tiene TR-069 con ProfileId {profile_id}")
+                        return True
+                    else:
+                        logger(f"[WARN] ONU {onu_id} tiene TR-069 con ProfileId inusual: {profile_id}")
+                        return True  # Igualmente consideramos que está configurada
+            
+            # Si no encontramos ProfileId, asumimos que no está configurada
+            logger(f"[INFO] ONU {onu_id} no tiene TR-069 configurado (sin ProfileId encontrado)")
+            return False
+            
         else:
-            # Para ZTE C600 - por ahora, no saltar ONUs ZTE
-            # Puede extenderse si se encuentra el comando equivalente
+            # Para ZTE C600 - no soportado por ahora
+            logger(f"[INFO] Validación TR-069 no soportada para ZTE C600, procesando de todas formas")
             return False
             
     except Exception as e:
-        # Si el comando falla, asumir que no está configurado
-        # (el display de una ONU sin configuración puede lanzar error)
-        logger(f"[INFO] No se pudo verificar TR-069 de ONU {onu_id}: {e} (asumiendo no configurado)")
+        # Si el comando falla, logueamos pero asumimos no configurado
+        # (una ONU sin TR-069 puede causar error en display)
+        logger(f"[INFO] No se pudo consultar TR-069 de ONU {onu_id}: {e} (asumiendo no configurado)")
         return False
 
 
