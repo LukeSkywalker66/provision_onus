@@ -11,6 +11,7 @@ class App(tk.Tk):
         self.eliminar_wan_pppoe = tk.BooleanVar()
         self.crear_wan_ip = tk.BooleanVar()
         self.rollback_serviceport = tk.BooleanVar() # borrar serviceport de la vlan150
+        self.skip_tr069_configured = tk.BooleanVar() # saltar ONUs ya configuradas con TR-069
         self._build()
 
     def _build(self):
@@ -25,6 +26,7 @@ class App(tk.Tk):
         tk.Checkbutton(frm_checks, text="eliminar wan pppoe", variable=self.eliminar_wan_pppoe).pack(side="left", padx=10)
         tk.Checkbutton(frm_checks, text="crear wan ip", variable=self.crear_wan_ip).pack(side="left", padx=10)
         tk.Checkbutton(frm_checks, text="eliminar serviceport(vlan150)", variable=self.rollback_serviceport).pack(side="left", padx=10)
+        tk.Checkbutton(frm_checks, text="skip TR-069 ya configurado", variable=self.skip_tr069_configured).pack(side="left", padx=10)
         self.progress = tk.Label(self, text="0/0 ONUs procesadas")
         self.progress.pack(pady=4)
         self.btn_run = tk.Button(self, text="Ejecutar", width=18)

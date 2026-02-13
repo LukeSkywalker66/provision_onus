@@ -272,6 +272,40 @@ def validate_omci_output(conn, cmd, logger, max_retries=10):
             continue
 
     raise RuntimeError(f"Comando '{cmd}' no pudo ejecutarse tras {max_retries} intentos")
+
+
+def check_onu_tr069_profile(conn, olt_name, slot, port, onu_id, logger):
+    """
+    Verifica si una ONU ya tiene un profile TR-069 asignado.
+    Retorna True si ya está configurada, False si no.
+    Compatible con OLTs Huawei y ZTE.
+    """
+    try:
+        if olt_name != "ZTE C600":
+            # Para OLTs Huawei
+            cmd = f"display ont tr069-server-config {port} {onu_id}"
+            out = validate_omci_output(conn, cmd, logger)
+            
+            # Buscar indicadores de que el profile existe
+            # Huawei retorna algo como "ProfileId: 1" si está configurado
+            if "ProfileId" in out or "Profile ID" in out or "profile-id" in out.lower():
+                logger(f"[SKIP] ONU {onu_id} ya tiene TR-069 configurado")
+                return True
+            else:
+                # Si no hay configuración TR-069, el comando retorna un output vacío o error
+                return False
+        else:
+            # Para ZTE C600 - por ahora, no saltar ONUs ZTE
+            # Puede extenderse si se encuentra el comando equivalente
+            return False
+            
+    except Exception as e:
+        # Si el comando falla, asumir que no está configurado
+        # (el display de una ONU sin configuración puede lanzar error)
+        logger(f"[INFO] No se pudo verificar TR-069 de ONU {onu_id}: {e} (asumiendo no configurado)")
+        return False
+
+
 # def validate_omci_output(conn, cmd, logger):
 #     """
 #     Ejecuta un comando OMCI, valida si la OLT está ocupada (backup),

@@ -10,7 +10,7 @@ from gui import App
 from csv_logic import parse_smartolt_csv
 from ssh_client import connect_olt, close_olt
 from config import OLT_MAP
-from omci import provision_onu, rollback_onu_serviceport   # NUEVO
+from omci import provision_onu, rollback_onu_serviceport, check_onu_tr069_profile   # NUEVO
 from datetime import datetime
 
 
@@ -201,6 +201,13 @@ def main():
                 start = time.time()
                 try:
                     conn = mgr.conn  # conexión vigente
+                    
+                    # Validación: si skip_tr069_configured está habilitado, verificar si ya está configurada
+                    if ui.skip_tr069_configured.get():
+                        if check_onu_tr069_profile(conn, olt_name, r["slot"], r["port"], r["onu_id"], ui.write_log):
+                            ui.write_log(f"[SKIP] ONU {r['onu_id']} en {olt_name} ya tiene TR-069 configurado, saltando")
+                            continue  # Salta al finally y luego a la siguiente iteración
+                    
                     if ui.rollback_serviceport.get():
                         rollback_onu_serviceport(
                             conn,
