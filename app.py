@@ -204,9 +204,11 @@ def main():
                     
                     # Validación: si skip_tr069_configured está habilitado, verificar si ya está configurada
                     if ui.skip_tr069_configured.get():
+                        ui.write_log(f"[INFO] Verificando TR-069 en ONU {r['onu_id']} ({r.get('pppoe_user', 'N/A')}) - {olt_name}")
                         if check_onu_tr069_profile(conn, olt_name, r["slot"], r["port"], r["onu_id"], ui.write_log):
-                            ui.write_log(f"[SKIP] ONU {r['onu_id']} en {olt_name} ya tiene TR-069 configurado, saltando")
+                            ui.write_log(f"[SKIP] ONU {r['onu_id']} ({r.get('pppoe_user', 'N/A')}) en {olt_name} ya tiene TR-069 configurado, saltando")
                             continue  # Salta al finally y luego a la siguiente iteración
+                        ui.write_log(f"[INFO] ONU {r['onu_id']} ({r.get('pppoe_user', 'N/A')}) en {olt_name} sin TR-069, se procesa")
                     
                     if ui.rollback_serviceport.get():
                         rollback_onu_serviceport(
@@ -216,6 +218,7 @@ def main():
                             r["port"],
                             r["onu_id"],
                             r["vlan"],
+                            r.get("pppoe_user"),
                             ui.write_log
                         )
                     else:
@@ -233,7 +236,7 @@ def main():
                             crear_wan_ip=ui.crear_wan_ip.get()
                         )
                 except Exception as e:
-                    ui.write_log(f"[ERROR] Error procesando {r.get('onu_id')} en {olt_name}: {e}")
+                    ui.write_log(f"[ERROR] Error procesando ONU {r.get('onu_id')} ({r.get('pppoe_user', 'N/A')}) en {olt_name}: {e}")
                 finally:
                     elapsed = time.time() - start
                     elapsed_total += elapsed

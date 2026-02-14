@@ -48,7 +48,7 @@ def provision_onu(conn, olt_name, slot, port, onu_id, onu_type, pppoe_user, vlan
             )
         else:
             # FLUJO ZTE: Comando específico
-            return _provision_zte_onu(conn, olt_name, slot, port, onu_id, logger)
+            return _provision_zte_onu(conn, olt_name, slot, port, onu_id, pppoe_user, logger)
 
     except Exception as e:
         logger(f"[ERROR] ONU {slot}/{port}:{onu_id} en {olt_name}: {e}. {ACS['pppoe_user']} | {ACS['pppoe_password']} | {vlan} | {ACS['prioridad']}")
@@ -125,15 +125,15 @@ def _provision_huawei_onu(conn, olt_name, slot, port, onu_id, pppoe_user, vlan, 
         validate_omci_output(conn, "quit", logger)
         logger("[.] Salió de la interfaz GPON - OK")
         time.sleep(EXEC["delay_between_onus"])
-        logger(f"[OK] ONU {onu_id} en {olt_name}")
+        logger(f"[OK] ONU {onu_id} ({pppoe_user}) en {olt_name}")
         return True
 
     except Exception as e:
-        logger(f"[ERROR] Flujo Huawei para ONU {onu_id} en {olt_name}: {e}")
+        logger(f"[ERROR] Flujo Huawei para ONU {onu_id} ({pppoe_user}) en {olt_name}: {e}")
         raise
 
 
-def _provision_zte_onu(conn, olt_name, slot, port, onu_id, logger):
+def _provision_zte_onu(conn, olt_name, slot, port, onu_id, pppoe_user, logger):
     """
     Provisiona una ONU en OLT ZTE C600.
     Flujo completamente diferente: comando único sin GPON mode.
@@ -147,14 +147,14 @@ def _provision_zte_onu(conn, olt_name, slot, port, onu_id, logger):
         validate_omci_output(conn, "quit", logger)
         logger("[.] Salió de la interfaz GPON - OK")
         time.sleep(EXEC["delay_between_onus"])
-        logger(f"[OK] ONU {onu_id} en {olt_name}")
+        logger(f"[OK] ONU {onu_id} ({pppoe_user}) en {olt_name}")
         return True
 
     except Exception as e:
-        logger(f"[ERROR] Flujo ZTE para ONU {onu_id} en {olt_name}: {e}")
+        logger(f"[ERROR] Flujo ZTE para ONU {onu_id} ({pppoe_user}) en {olt_name}: {e}")
         raise
 
-def rollback_onu_serviceport(conn, olt_name, slot, port, onu_id, vlan, logger):
+def rollback_onu_serviceport(conn, olt_name, slot, port, onu_id, vlan, pppoe_user, logger):
     """
     Busca y elimina los service-port asociados a una ONU en la VLAN indicada.
     """
@@ -178,17 +178,17 @@ def rollback_onu_serviceport(conn, olt_name, slot, port, onu_id, vlan, logger):
                 service_ports.append(parts[0])  # ID del service-port
 
         if not service_ports:
-            logger(f"[WARN] No se encontró service-port con VLAN {vlan} para ONU {onu_id}")
+            logger(f"[WARN] No se encontró service-port con VLAN {vlan} para ONU {onu_id} ({pppoe_user})")
             return False
 
         for sp_id in service_ports:
             cmd = f"undo service-port {sp_id}"
             out = validate_omci_output(conn, cmd, logger)
-            logger(f"[OK] Eliminado service-port {sp_id}, VLAN 150 para ONU {onu_id}")
+            logger(f"[OK] Eliminado service-port {sp_id}, VLAN 150 para ONU {onu_id} ({pppoe_user})")
         return True
 
     except Exception as e:
-        logger(f"[ERROR] Rollback ONU {slot}/{port}:{onu_id} en {olt_name}: {e}")
+        logger(f"[ERROR] Rollback ONU {slot}/{port}:{onu_id} ({pppoe_user}) en {olt_name}: {e}")
         return False
 
 
@@ -229,55 +229,93 @@ def validate_omci_output(conn, cmd, logger, max_retries=10):
 def check_onu_tr069_profile(conn, olt_name, slot, port, onu_id, logger):
     """
     Verifica si una ONU ya tiene un profile TR-069 asignado.
-    Consulta la OLT vía OMCI: display ont tr069-server-config PORT ONU_ID
-    Parsea el output para extraer el ProfileId y validar si es válido.
-    
+    Consulta la OLT vía OMCI usando "display ont info" y parsea el campo
+    "TR069 server profile ID" cuando existe.
+
     Retorna True si ya está configurada, False si no.
     Compatible con OLTs Huawei. ZTE retorna False (sin soporte).
     """
     try:
         if olt_name != "ZTE C600":
-            # Para OLTs Huawei - Consulta a la OLT
-            cmd = f"display ont tr069-server-config {port} {onu_id}"
-            out = validate_omci_output(conn, cmd, logger)
-            
-            # Parsear output para buscar un ProfileId asignado
-            # Formato esperado en Huawei: línea con "ProfileId" o "profile" seguido de ":", ": ", "=", etc.
-            # Ejemplo: "ProfileId : 2" o "Profile ID: 1" o similar
-            
-            # Buscar patrón: "profile" (case-insensitive) seguido de "id" y luego ":" o "="
-            # y capturar el número después
-            import re
-            
-            # Patrones posibles en output Huawei
-            patterns = [
-                r'ProfileId\s*[:=]\s*(\d+)',      # ProfileId : 1 o ProfileId=1
-                r'Profile\s+ID\s*[:=]\s*(\d+)',   # Profile ID : 1
-                r'profile-id\s+(\d+)',             # profile-id 1
-                r'profile\s+id\s*[:=]\s*(\d+)',   # profile id : 1 (case-insensitive)
-            ]
-            
-            for pattern in patterns:
-                match = re.search(pattern, out, re.IGNORECASE)
-                if match:
-                    profile_id = int(match.group(1))
-                    # Validar que sea un ProfileId válido (1 o 2 para Huawei)
-                    if profile_id in [1, 2]:
-                        logger(f"[SKIP] ONU {onu_id} ya tiene TR-069 con ProfileId {profile_id}")
-                        return True
+            # Para OLTs Huawei - Consulta a la OLT (requiere estar en interface gpon 0/{slot})
+            try:
+                # Entrar a interface gpon
+                gpon_cmd = f"interface gpon 0/{slot}"
+                validate_omci_output(conn, gpon_cmd, logger)
+                
+                # display ont info tiene paginación (3-4 pantallas)
+                cmd = f"display ont info {port} {onu_id}"
+                
+                # Enviar comando y esperar
+                import time as time_module
+                conn.write_channel(cmd + '\n')
+                time_module.sleep(2)
+                
+                # Leer primera respuesta (puede ser prompt de confirmación)
+                out = conn.read_channel()
+                
+                # Si es un prompt de confirmación (ej: "{ <cr> }:"), enviar Enter
+                if "}:" in out or "{ <cr>" in out or len(out) < 50:
+                    conn.write_channel('\n')
+                    time_module.sleep(3)
+                
+                # Leer todo el output real con paginación
+                max_iterations = 15
+                for i in range(max_iterations):
+                    chunk = conn.read_channel()
+                    if chunk:
+                        out += chunk
+                        
+                        # Detectar diferentes tipos de paginación
+                        has_pagination = (
+                            "---- More ----" in chunk or 
+                            "  ---- More" in chunk or
+                            "Press 'Q' to break" in chunk or
+                            "press q to quit" in chunk.lower()
+                        )
+                        
+                        if has_pagination:
+                            conn.write_channel(" ")
+                            time_module.sleep(2)
+                        # Si vemos el prompt, terminamos
+                        elif "]" in chunk[-50:]:
+                            break
                     else:
-                        logger(f"[WARN] ONU {onu_id} tiene TR-069 con ProfileId inusual: {profile_id}")
-                        return True  # Igualmente consideramos que está configurada
-            
-            # Si no encontramos ProfileId, asumimos que no está configurada
-            logger(f"[INFO] ONU {onu_id} no tiene TR-069 configurado (sin ProfileId encontrado)")
+                        time_module.sleep(0.5)
+                
+            finally:
+                # Salir de la interfaz GPON para no afectar el flujo principal
+                try:
+                    validate_omci_output(conn, "quit", logger)
+                except Exception:
+                    pass
+
+            # Parsear output para buscar el campo TR069 server profile ID
+            # Ejemplo esperado:
+            # "TR069 server profile ID      : 2"
+            import re
+
+            match = re.search(
+                r"TR069\s+(?:server\s+)?profile\s+ID\s*[:=]\s*(\d+)",
+                out,
+                re.IGNORECASE,
+            )
+            if match:
+                profile_id = int(match.group(1))
+                logger(f"[SKIP] ONU {onu_id} ya tiene TR-069 con ProfileId {profile_id}")
+                return True
+
+            # Si no encontramos el campo, asumimos que no está configurada
+            tr069_lines = [line.strip() for line in out.splitlines() if "tr069" in line.lower()]
+            if tr069_lines:
+                logger(f"[INFO] Lineas TR069 encontradas pero sin ProfileId: {' | '.join(tr069_lines)}")
+            logger(f"[INFO] ONU {onu_id} no tiene TR-069 configurado (campo TR069 server profile ID ausente)")
             return False
-            
-        else:
-            # Para ZTE C600 - no soportado por ahora
-            logger(f"[INFO] Validación TR-069 no soportada para ZTE C600, procesando de todas formas")
-            return False
-            
+
+        # Para ZTE C600 - no soportado por ahora
+        logger("[INFO] Validación TR-069 no soportada para ZTE C600, procesando de todas formas")
+        return False
+
     except Exception as e:
         # Si el comando falla, logueamos pero asumimos no configurado
         # (una ONU sin TR-069 puede causar error en display)
