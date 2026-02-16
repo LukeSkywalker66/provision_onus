@@ -11,11 +11,11 @@ Aplicación de escritorio para provisionar ONUs en OLTs Huawei y ZTE con configu
 git clone https://github.com/LukeSkywalker66/provision_onus.git
 cd provision_onus
 
-# Ejecutar setup automático
+# Ejecutar setup automático (crea .env y venv)
 .\setup.ps1
 
-# Activar venv para futuras sesiones
-.\venv\Scripts\Activate.ps1
+# IMPORTANTE: Editar .env con tus credenciales reales
+notepad .env
 
 # Ejecutar aplicación
 python app.py
@@ -30,6 +30,9 @@ cd provision_onus
 REM Ejecutar setup automático
 setup.bat
 
+REM Editar .env con credenciales reales
+start .env
+
 REM Ejecutar aplicación
 python app.py
 ```
@@ -42,12 +45,55 @@ python -m venv venv
 # Activar venv
 .\venv\Scripts\Activate.ps1
 
+# Crear .env desde template
+copy .env.example .env
+# Editar .env con tus credenciales
+
 # Instalar dependencias
 pip install -r requirements.txt
 
 # Ejecutar
 python app.py
 ```
+
+## ⚙️ Configuración de Credenciales
+
+### **Archivo `.env` (Importante)**
+
+El archivo `.env` contiene tus credenciales y **NO debe commiterse a git**.
+
+**Primero ejecutar setup:**
+```powershell
+.\setup.ps1  # Crea .env automáticamente desde .env.example
+```
+
+**Luego editar `.env` con tus credenciales reales:**
+```
+OLT_1_NAME=Villa Dolores 2
+OLT_1_IP=10.11.104.5
+OLT_1_USER=smartoltusr
+OLT_1_PASSWORD=TU_PASSWORD_REAL
+OLT_1_PORT=22
+OLT_1_VENDOR=huawei
+
+ACS_IP=http://tu.acs.com
+ACS_PORT=7547
+ACS_PPPOE_USER=tr069
+ACS_PPPOE_PASSWORD=tu_password
+...
+```
+
+**Puedes agregar hasta 9 OLTs:**
+```
+OLT_1_NAME=OLT_1
+...
+OLT_2_NAME=OLT_2
+...
+OLT_9_NAME=OLT_9
+```
+
+⚠️ **NUNCA pushear `.env` a git** - Está en `.gitignore`
+
 
 ## 📋 Requisitos Previos
 

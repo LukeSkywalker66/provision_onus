@@ -1,7 +1,12 @@
 # Entornos virtuales
 venv/
-.env/
 .venv/
+env/
+
+# Archivos de configuración sensibles
+.env
+.env.local
+.env.*.local
 
 # Archivos compilados
 __pycache__/

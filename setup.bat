@@ -60,6 +60,20 @@ echo [*] Actualizando pip...
 python -m pip install --upgrade pip -q
 echo [OK] pip actualizado
 
+REM Crear .env desde .env.example si no existe
+echo [*] Configurando archivo .env...
+if not exist .env (
+    if exist .env.example (
+        copy .env.example .env
+        echo [OK] .env creado desde .env.example
+        echo [WARN] IMPORTANTE: Edita .env con tus credenciales reales
+    ) else (
+        echo [WARN] No se encontro .env.example
+    )
+) else (
+    echo [OK] .env ya existe
+)
+
 REM Instalar dependencias
 echo [*] Instalando dependencias (esto puede tardar 1-2 minutos)...
 if exist requirements.txt (

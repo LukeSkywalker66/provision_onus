@@ -57,6 +57,20 @@ Write-Host "[*] Actualizando pip..." -ForegroundColor Yellow
 python -m pip install --upgrade pip -q
 Write-Host "[OK] pip actualizado" -ForegroundColor Green
 
+# Crear .env desde .env.example si no existe
+Write-Host "[*] Configurando archivo .env..." -ForegroundColor Yellow
+if (-not (Test-Path ".env")) {
+    if (Test-Path ".env.example") {
+        Copy-Item ".env.example" ".env"
+        Write-Host "[OK] .env creado desde .env.example" -ForegroundColor Green
+        Write-Host "[WARN] IMPORTANTE: Edita .env con tus credenciales reales" -ForegroundColor Yellow
+    } else {
+        Write-Host "[WARN] No se encontró .env.example" -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "[OK] .env ya existe" -ForegroundColor Green
+}
+
 # Instalar dependencias
 Write-Host "[*] Instalando dependencias (esto puede tardar 1-2 minutos)..." -ForegroundColor Yellow
 if (Test-Path "requirements.txt") {
