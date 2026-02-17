@@ -158,6 +158,10 @@ def main():
         for r in records:
             by_olt.setdefault(r["olt_name"], []).append(r)
 
+        # Contadores globales de stats
+        total_provisioned = 0
+        total_skipped = 0
+
         for olt_name, items in by_olt.items():
             cfg = OLT_MAP.get(olt_name)
             if not cfg:
@@ -197,8 +201,11 @@ def main():
             total_items = len(items)
             done_local = 0
             elapsed_total = 0.0
+            olt_provisioned = 0
+            olt_skipped = 0
             for r in items:
                 start = time.time()
+                was_skipped = False
                 try:
                     conn = mgr.conn  # conexión vigente
                     
@@ -207,6 +214,9 @@ def main():
                         ui.write_log(f"[INFO] Verificando TR-069 en ONU {r['onu_id']} ({r.get('pppoe_user', 'N/A')}) - {olt_name}")
                         if check_onu_tr069_profile(conn, olt_name, r["slot"], r["port"], r["onu_id"], ui.write_log):
                             ui.write_log(f"[SKIP] ONU {r['onu_id']} ({r.get('pppoe_user', 'N/A')}) en {olt_name} ya tiene TR-069 configurado, saltando")
+                            was_skipped = True
+                            olt_skipped += 1
+                            total_skipped += 1
                             continue  # Salta al finally y luego a la siguiente iteración
                         ui.write_log(f"[INFO] ONU {r['onu_id']} ({r.get('pppoe_user', 'N/A')}) en {olt_name} sin TR-069, se procesa")
                     
@@ -235,6 +245,10 @@ def main():
                             eliminar_wan_pppoe=ui.eliminar_wan_pppoe.get(),
                             crear_wan_ip=ui.crear_wan_ip.get()
                         )
+                    # Incrementar contador de provisioned solo si no fue skipped
+                    if not was_skipped:
+                        olt_provisioned += 1
+                        total_provisioned += 1
                 except Exception as e:
                     ui.write_log(f"[ERROR] Error procesando ONU {r.get('onu_id')} ({r.get('pppoe_user', 'N/A')}) en {olt_name}: {e}")
                 finally:
@@ -242,10 +256,11 @@ def main():
                     elapsed_total += elapsed
                     done_local += 1
                     # actualizar progreso global: sum de items procesados por OLT + mgr.counter para ETA aproximada
-                    ui.update_progress(done_local, total_items, elapsed_total / done_local, (elapsed_total / done_local) * (total_items - done_local))
+                    ui.update_progress(done_local, total_items, elapsed_total / done_local, (elapsed_total / done_local) * (total_items - done_local), provisioned=total_provisioned, skipped=total_skipped)
                     # incrementar contador global del manager y rotar si hace falta
                     mgr.increment_and_rotate(connect_args=(cfg["ip"], cfg["user"], cfg["password"], cfg.get("port", 22)))
             # Fin for r in items
+            ui.write_log(f"[INFO] ═══ OLT {olt_name}: {olt_provisioned} provisioned + {olt_skipped} skipped = {total_items} total")
 
             # Guardar checkpoint final y cerrar
             mgr.save_checkpoint()
@@ -315,6 +330,14 @@ def main():
                 
             # close_olt(conn)
             # ui.write_log(f"[.] Desconectado de {olt_name}")
+
+        # Resumen final
+        ui.write_log(f"\n[✓] EJECUCIÓN COMPLETADA")
+        ui.write_log(f"[INFO] ═══════════════════════════════════════════════════")
+        ui.write_log(f"[INFO] Total Provisioned: {total_provisioned}")
+        ui.write_log(f"[INFO] Total Skipped: {total_skipped}")
+        ui.write_log(f"[INFO] Total Processing: {total_provisioned + total_skipped}")
+        ui.write_log(f"[INFO] ═══════════════════════════════════════════════════")
 
     # Wire del botón Ejecutar
     def on_click():

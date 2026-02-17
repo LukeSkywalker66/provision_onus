@@ -29,6 +29,8 @@ class App(tk.Tk):
         tk.Checkbutton(frm_checks, text="skip TR-069 ya configurado", variable=self.skip_tr069_configured).pack(side="left", padx=10)
         self.progress = tk.Label(self, text="0/0 ONUs procesadas")
         self.progress.pack(pady=4)
+        self.stats = tk.Label(self, text="", font=("TkDefaultFont", 10, "bold"), fg="darkgreen")
+        self.stats.pack(pady=2)
         self.btn_run = tk.Button(self, text="Ejecutar", width=18)
         self.btn_run.pack(pady=6)
 
@@ -73,11 +75,21 @@ class App(tk.Tk):
     def error(self, title, msg):
         messagebox.showerror(title, msg)
         logging.error(f"{title}: {msg}")
-    def update_progress(self, done, total, avg=None, eta=None):
+    def update_progress(self, done, total, avg=None, eta=None, provisioned=None, skipped=None):
         text = f"{done}/{total} ONUs procesadas"
         if avg and eta:
             text += f" – Promedio: {avg:.1f}s – ETA: {int(eta//60)}m{int(eta%60)}s"
         self.progress.config(text=text)
+        if provisioned is not None or skipped is not None:
+            stats_text = ""
+            if provisioned is not None:
+                stats_text += f"✓ Provisioned: {provisioned}"
+            if skipped is not None:
+                if stats_text:
+                    stats_text += "  •  "
+                stats_text += f"⊘ Skipped: {skipped}"
+            self.stats.config(text=stats_text)
         self.progress.update_idletasks()
+        self.stats.update_idletasks()
 
 
