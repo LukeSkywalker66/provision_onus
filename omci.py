@@ -291,15 +291,34 @@ def check_onu_tr069_profile(conn, olt_name, slot, port, onu_id, logger):
                     pass
 
             # Parsear output para buscar el campo TR069 server profile ID
-            # Ejemplo esperado:
-            # "TR069 server profile ID      : 2"
+            # Compatible con múltiples formatos según fabricante/versión:
+            # - Huawei (Villa Dolores 2): "TR069 server profile ID      : 2"
+            # - Huawei (OLTHUAWEI): "tr069-server-profile_1        : 1" o "tr069-server-profile_2        : 2"
             import re
 
+            # Intentar primera regex: "TR069 server profile ID" (formato estándar)
             match = re.search(
                 r"TR069\s+(?:server\s+)?profile\s+ID\s*[:=]\s*(\d+)",
                 out,
                 re.IGNORECASE,
             )
+            
+            # Si no encuentra, intentar con guiones: "tr069-server-profile_1" o "tr069-server-profile_2"
+            if not match:
+                match = re.search(
+                    r"tr069-server-profile_[12]\s*[:=]\s*(\d+)",
+                    out,
+                    re.IGNORECASE,
+                )
+            
+            # Si aún no encuentra, buscar cualquier combinación flexible de TR069 + profile + número
+            if not match:
+                match = re.search(
+                    r"tr069[^:]*(?:profile|profile_id|profileid)[^:]*[:=]\s*(\d+)",
+                    out,
+                    re.IGNORECASE,
+                )
+            
             if match:
                 profile_id = int(match.group(1))
                 logger(f"[SKIP] ONU {onu_id} ya tiene TR-069 con ProfileId {profile_id}")
