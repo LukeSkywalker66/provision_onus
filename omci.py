@@ -243,7 +243,7 @@ def check_onu_tr069_profile(conn, olt_name, slot, port, onu_id, logger):
                 gpon_cmd = f"interface gpon 0/{slot}"
                 validate_omci_output(conn, gpon_cmd, logger)
                 
-                # display ont info tiene paginación (3-4 pantallas)
+                # display ont info tiene paginación (10+ pantallas)
                 cmd = f"display ont info {port} {onu_id}"
                 
                 # Enviar comando y esperar
@@ -259,8 +259,11 @@ def check_onu_tr069_profile(conn, olt_name, slot, port, onu_id, logger):
                     conn.write_channel('\n')
                     time_module.sleep(3)
                 
-                # Leer todo el output real con paginación
-                max_iterations = 15
+                # Leer TODO el output con paginación
+                # El display ont info puede tener 100+ líneas, necesitamos leerlo completo
+                max_iterations = 100  # Aumentado de 15 a 100 para output largo
+                pagination_pause = 0.8  # Pequeña pausa entre páginas
+                
                 for i in range(max_iterations):
                     chunk = conn.read_channel()
                     if chunk:
@@ -271,17 +274,26 @@ def check_onu_tr069_profile(conn, olt_name, slot, port, onu_id, logger):
                             "---- More ----" in chunk or 
                             "  ---- More" in chunk or
                             "Press 'Q' to break" in chunk or
-                            "press q to quit" in chunk.lower()
+                            "press q to quit" in chunk.lower() or
+                            " More " in chunk or
+                            "--More--" in chunk
                         )
                         
                         if has_pagination:
                             conn.write_channel(" ")
-                            time_module.sleep(2)
-                        # Si vemos el prompt, terminamos
-                        elif "]" in chunk[-50:]:
+                            time_module.sleep(pagination_pause)
+                        # Si vemos el prompt final (], MA5608T etc), terminamos
+                        elif any(p in chunk[-100:] for p in ["#", "MA5608T", "ZTE", ")#"]):
+                            # Hemos llegado al final del comando
                             break
                     else:
+                        # Sin más datos disponibles después de leer
                         time_module.sleep(0.5)
+                        # Intentar una lectura final
+                        final_chunk = conn.read_channel()
+                        if final_chunk and any(p in final_chunk for p in ["#", "MA5608T", "ZTE"]):
+                            out += final_chunk
+                            break
                 
             finally:
                 # Salir de la interfaz GPON para no afectar el flujo principal
