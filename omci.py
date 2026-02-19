@@ -246,13 +246,12 @@ def check_onu_tr069_profile(conn, olt_name, slot, port, onu_id, logger):
                 # Desactivar paginacion para capturar todo el output
                 validate_omci_output(conn, "screen-length 0 temporary", logger)
 
-                # Ejecutar display ont info - usar send_command() en lugar de validate_omci_output()
-                # porque send_command() espera el prompt completo y captura TODO el output
+                # Ejecutar display ont info - usar send_command() con auto-detección de prompt
+                # send_command() sin expect_string usa la detección automática del prompt de netmiko
+                # Solo aumentamos read_timeout porque el output es muy largo (100+ líneas)
                 cmd = f"display ont info {port} {onu_id}"
                 logger(f"Enviando comando: {cmd}")
-                # El prompt dentro de gpon es: MA5608T(config-if-gpon-0/X)#
-                # Usar un patrón regex que coincida con cualquier prompt que termine en #
-                out = conn.send_command(cmd, expect_string=r".*#", read_timeout=30, delay_factor=4)
+                out = conn.send_command(cmd, read_timeout=30, delay_factor=4)
                 
                 # DEBUG: Loguear las líneas que contienen TR069 para diagnosticar
                 tr069_debug_lines = [line for line in out.splitlines() if "tr069" in line.lower()]
