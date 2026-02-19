@@ -262,6 +262,12 @@ def check_onu_tr069_profile(conn, olt_name, slot, port, onu_id, logger):
                     strip_command=False  # No remover el comando del output
                 )
                 
+                # DEBUG: Mostrar TODO el output capturado
+                logger(f"[DEBUG] ========== OUTPUT COMPLETO (total {len(out)} chars) ==========")
+                for i, line in enumerate(out.splitlines()[:100], 1):  # Primeras 100 líneas
+                    logger(f"[DEBUG] L{i:03d}: {line}")
+                logger(f"[DEBUG] ========== FIN OUTPUT ==========")
+                
                 # DEBUG: Loguear las líneas que contienen TR069 para diagnosticar
                 tr069_debug_lines = [line for line in out.splitlines() if "tr069" in line.lower()]
                 if tr069_debug_lines:
