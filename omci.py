@@ -253,10 +253,26 @@ def check_onu_tr069_profile(conn, olt_name, slot, port, onu_id, logger):
                 
                 # send_command_timing() espera un tiempo fijo (default ~1s, ajustable con delay_factor)
                 # y retorna todo lo que recibió. Más predecible que esperar el prompt.
-                out = conn.send_command_timing(cmd, delay_factor=4)  # ~4 segundos de espera
+                out = conn.send_command_timing(cmd, delay_factor=2)
+                
+                # MANEJO DE PAGINACIÓN: Si el output contiene "More" o "Press", 
+                # significa que hay más páginas. Enviar espacios hasta capturar todo.
+                max_iterations = 20  # Límite de seguridad
+                iteration = 0
+                while any(indicator in out for indicator in ["---- More", "Press 'Q'", "Press to continue"]):
+                    iteration += 1
+                    if iteration > max_iterations:
+                        logger(f"[WARN] Alcanzado límite de {max_iterations} páginas, deteniendo paginación")
+                        break
+                    
+                    logger(f"[DEBUG] Paginación detectada (iteración {iteration}), enviando espacio...")
+                    conn.write_channel(" ")  # Enviar espacio para continuar
+                    time.sleep(0.5)  # Breve pausa para que el OLT envíe más datos
+                    more_output = conn.read_channel()  # Leer la siguiente página
+                    out += more_output  # Concatenar al output total
                 
                 # DEBUG: Mostrar TODO el output capturado
-                logger(f"[DEBUG] ========== OUTPUT COMPLETO (total {len(out)} chars) ==========")
+                logger(f"[DEBUG] ========== OUTPUT COMPLETO (total {len(out)} chars, {iteration} páginas) ==========")
                 for i, line in enumerate(out.splitlines()[:100], 1):  # Primeras 100 líneas
                     logger(f"[DEBUG] L{i:03d}: {line}")
                 logger(f"[DEBUG] ========== FIN OUTPUT ==========")
