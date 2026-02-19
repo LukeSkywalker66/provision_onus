@@ -250,10 +250,17 @@ def check_onu_tr069_profile(conn, olt_name, slot, port, onu_id, logger):
                 # Desactivar paginacion para capturar todo el output de una vez
                 validate_omci_output(conn, "screen-length 0 temporary", logger)
 
-                # Ahora send_command() funcionará correctamente porque conoce el prompt actualizado
+                # Ahora send_command() con timeout MUCHO más largo
+                # El output de display ont info es extenso (100+ líneas) y puede tardar
                 cmd = f"display ont info {port} {onu_id}"
                 logger(f"Enviando comando: {cmd}")
-                out = conn.send_command(cmd, read_timeout=10)
+                out = conn.send_command(
+                    cmd, 
+                    read_timeout=60,  # Aumentado de 10 a 60 segundos
+                    delay_factor=8,   # Factor de delay más alto
+                    strip_prompt=False,  # No remover el prompt para evitar problemas de matching
+                    strip_command=False  # No remover el comando del output
+                )
                 
                 # DEBUG: Loguear las líneas que contienen TR069 para diagnosticar
                 tr069_debug_lines = [line for line in out.splitlines() if "tr069" in line.lower()]
