@@ -236,6 +236,12 @@ def check_onu_tr069_profile(conn, olt_name, slot, port, onu_id, logger):
     Compatible con OLTs Huawei. ZTE retorna False (sin soporte).
     """
     try:
+        # TEMPORAL: Desactivar para OLTs problemáticas donde display ont info causa timeout
+        # TODO: Investigar por qué OLTHUAWEI tiene problemas con send_command() en interface gpon
+        if olt_name in ["OLTHUAWEI", "OLT(San_Jose)"]:
+            logger(f"[INFO] Validación TR-069 desactivada temporalmente para {olt_name}")
+            return False
+            
         if olt_name != "ZTE C600":
             # Para OLTs Huawei - Consulta a la OLT (requiere estar en interface gpon 0/{slot})
             try:
