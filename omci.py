@@ -262,24 +262,12 @@ def check_onu_tr069_profile(conn, olt_name, slot, port, onu_id, logger):
                 while any(indicator in out for indicator in ["---- More", "Press 'Q'", "Press to continue"]):
                     iteration += 1
                     if iteration > max_iterations:
-                        logger(f"[WARN] Alcanzado límite de {max_iterations} páginas en paginación")
                         break
                     
                     conn.write_channel(" ")  # Enviar espacio para continuar
                     time.sleep(0.5)  # Breve pausa para que el OLT envíe más datos
                     more_output = conn.read_channel()  # Leer la siguiente página
                     out += more_output  # Concatenar al output total
-                
-                # Resumen de captura
-                if iteration > 0:
-                    logger(f"[INFO] Output capturado: {len(out)} chars en {iteration + 1} páginas")
-                
-                # Buscar líneas TR069 relevantes para logging
-                tr069_lines = [line.strip() for line in out.splitlines() if "tr069" in line.lower()]
-                if tr069_lines:
-                    logger(f"[INFO] Campos TR069 encontrados:")
-                    for line in tr069_lines[:5]:  # Mostrar máximo 5 líneas
-                        logger(f"  → {line}")
                 
             finally:
                 # Salir de la interfaz GPON para no afectar el flujo principal
@@ -319,14 +307,11 @@ def check_onu_tr069_profile(conn, olt_name, slot, port, onu_id, logger):
             
             if match:
                 profile_id = int(match.group(1))
-                logger(f"[SKIP] ONU {onu_id} ya tiene TR-069 con ProfileId {profile_id}")
+                logger(f"[SKIP] ONU {onu_id} ya tiene TR-069 configurado (ProfileId {profile_id})")
                 return True
 
             # Si no encontramos el campo, asumimos que no está configurada
-            tr069_lines = [line.strip() for line in out.splitlines() if "tr069" in line.lower()]
-            if tr069_lines:
-                logger(f"[INFO] Lineas TR069 encontradas pero sin ProfileId: {' | '.join(tr069_lines)}")
-            logger(f"[INFO] ONU {onu_id} no tiene TR-069 configurado (campo TR069 server profile ID ausente)")
+            logger(f"[INFO] ONU {onu_id} sin TR-069 configurado, se procesará")
             return False
 
         # Para ZTE C600 - no soportado por ahora

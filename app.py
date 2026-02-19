@@ -211,14 +211,12 @@ def main():
                     
                     # Validación: si skip_tr069_configured está habilitado, verificar si ya está configurada
                     if ui.skip_tr069_configured.get():
-                        ui.write_log(f"[INFO] Verificando TR-069 en ONU {r['onu_id']} ({r.get('pppoe_user', 'N/A')}) - {olt_name}")
+                        ui.write_log(f"[INFO] Chequeando TR-069 en ONU {r['onu_id']} ({r.get('pppoe_user', 'N/A')})...")
                         if check_onu_tr069_profile(conn, olt_name, r["slot"], r["port"], r["onu_id"], ui.write_log):
-                            ui.write_log(f"[SKIP] ONU {r['onu_id']} ({r.get('pppoe_user', 'N/A')}) en {olt_name} ya tiene TR-069 configurado, saltando")
                             was_skipped = True
                             olt_skipped += 1
                             total_skipped += 1
                             continue  # Salta al finally y luego a la siguiente iteración
-                        ui.write_log(f"[INFO] ONU {r['onu_id']} ({r.get('pppoe_user', 'N/A')}) en {olt_name} sin TR-069, se procesa")
                     
                     if ui.rollback_serviceport.get():
                         rollback_onu_serviceport(
