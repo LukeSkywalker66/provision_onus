@@ -246,9 +246,11 @@ def check_onu_tr069_profile(conn, olt_name, slot, port, onu_id, logger):
                 # Desactivar paginacion para capturar todo el output
                 validate_omci_output(conn, "screen-length 0 temporary", logger)
 
-                # Ejecutar display ont info sin paginacion
+                # Ejecutar display ont info - usar send_command() en lugar de validate_omci_output()
+                # porque send_command() espera el prompt completo y captura TODO el output
                 cmd = f"display ont info {port} {onu_id}"
-                out = validate_omci_output(conn, cmd, logger)
+                logger(f"Enviando comando: {cmd}")
+                out = conn.send_command(cmd, expect_string=r"#", delay_factor=2, max_loops=1000)
                 
                 # DEBUG: Loguear las líneas que contienen TR069 para diagnosticar
                 tr069_debug_lines = [line for line in out.splitlines() if "tr069" in line.lower()]
