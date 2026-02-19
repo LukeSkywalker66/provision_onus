@@ -262,27 +262,24 @@ def check_onu_tr069_profile(conn, olt_name, slot, port, onu_id, logger):
                 while any(indicator in out for indicator in ["---- More", "Press 'Q'", "Press to continue"]):
                     iteration += 1
                     if iteration > max_iterations:
-                        logger(f"[WARN] Alcanzado límite de {max_iterations} páginas, deteniendo paginación")
+                        logger(f"[WARN] Alcanzado límite de {max_iterations} páginas en paginación")
                         break
                     
-                    logger(f"[DEBUG] Paginación detectada (iteración {iteration}), enviando espacio...")
                     conn.write_channel(" ")  # Enviar espacio para continuar
                     time.sleep(0.5)  # Breve pausa para que el OLT envíe más datos
                     more_output = conn.read_channel()  # Leer la siguiente página
                     out += more_output  # Concatenar al output total
                 
-                # DEBUG: Mostrar TODO el output capturado
-                logger(f"[DEBUG] ========== OUTPUT COMPLETO (total {len(out)} chars, {iteration} páginas) ==========")
-                for i, line in enumerate(out.splitlines()[:100], 1):  # Primeras 100 líneas
-                    logger(f"[DEBUG] L{i:03d}: {line}")
-                logger(f"[DEBUG] ========== FIN OUTPUT ==========")
+                # Resumen de captura
+                if iteration > 0:
+                    logger(f"[INFO] Output capturado: {len(out)} chars en {iteration + 1} páginas")
                 
-                # DEBUG: Loguear las líneas que contienen TR069 para diagnosticar
-                tr069_debug_lines = [line for line in out.splitlines() if "tr069" in line.lower()]
-                if tr069_debug_lines:
-                    logger(f"[DEBUG] Líneas TR069 capturadas: {tr069_debug_lines[:5]}")  # Primeras 5 líneas
-                else:
-                    logger(f"[DEBUG] No se encontraron líneas con 'tr069' en output de {len(out)} chars")
+                # Buscar líneas TR069 relevantes para logging
+                tr069_lines = [line.strip() for line in out.splitlines() if "tr069" in line.lower()]
+                if tr069_lines:
+                    logger(f"[INFO] Campos TR069 encontrados:")
+                    for line in tr069_lines[:5]:  # Mostrar máximo 5 líneas
+                        logger(f"  → {line}")
                 
             finally:
                 # Salir de la interfaz GPON para no afectar el flujo principal
