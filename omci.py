@@ -246,12 +246,32 @@ def check_onu_tr069_profile(conn, olt_name, slot, port, onu_id, logger):
                 # Desactivar paginacion para capturar todo el output
                 validate_omci_output(conn, "screen-length 0 temporary", logger)
 
-                # Ejecutar display ont info - usar send_command() con auto-detección de prompt
-                # send_command() sin expect_string usa la detección automática del prompt de netmiko
-                # Solo aumentamos read_timeout porque el output es muy largo (100+ líneas)
+                # Ejecutar display ont info usando escritura manual y lectura incremental
+                # porque el output es muy largo (100+ líneas) y send_command() tiene problemas con timeout
                 cmd = f"display ont info {port} {onu_id}"
                 logger(f"Enviando comando: {cmd}")
-                out = conn.send_command(cmd, read_timeout=30, delay_factor=4)
+                
+                import time as time_module
+                conn.write_channel(cmd + '\n')
+                time_module.sleep(3)  # Esperar que empiece a responder
+                
+                out = ""
+                # Leer hasta que no haya más datos disponibles
+                # El comando sin paginación debería retornar TODO el output de una vez
+                for _ in range(50):  # Máximo 50 iteraciones de 0.5s = 25 segundos
+                    time_module.sleep(0.5)
+                    chunk = conn.read_channel()
+                    if chunk:
+                        out += chunk
+                    else:
+                        # Si no hay más datos, esperar un poco más por si acaso
+                        time_module.sleep(1)
+                        final_chunk = conn.read_channel()
+                        if final_chunk:
+                            out += final_chunk
+                        else:
+                            # Realmente no hay más datos
+                            break
                 
                 # DEBUG: Loguear las líneas que contienen TR069 para diagnosticar
                 tr069_debug_lines = [line for line in out.splitlines() if "tr069" in line.lower()]
