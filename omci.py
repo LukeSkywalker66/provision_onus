@@ -236,12 +236,6 @@ def check_onu_tr069_profile(conn, olt_name, slot, port, onu_id, logger):
     Compatible con OLTs Huawei. ZTE retorna False (sin soporte).
     """
     try:
-        # TEMPORAL: Desactivar para OLTs problemáticas donde display ont info causa timeout
-        # TODO: Investigar por qué OLTHUAWEI tiene problemas con send_command() en interface gpon
-        if olt_name in ["OLTHUAWEI", "OLT(San_Jose)"]:
-            logger(f"[INFO] Validación TR-069 desactivada temporalmente para {olt_name}")
-            return False
-            
         if olt_name != "ZTE C600":
             # Para OLTs Huawei - Consulta a la OLT (requiere estar en interface gpon 0/{slot})
             try:
@@ -249,24 +243,17 @@ def check_onu_tr069_profile(conn, olt_name, slot, port, onu_id, logger):
                 gpon_cmd = f"interface gpon 0/{slot}"
                 validate_omci_output(conn, gpon_cmd, logger)
 
-                # IMPORTANTE: El prompt cambia de MA5608T(config)# a MA5608T(config-if-gpon-0/X)#
-                # Necesitamos que netmiko re-detecte el nuevo prompt
-                conn.find_prompt()
-                
                 # Desactivar paginacion para capturar todo el output de una vez
                 validate_omci_output(conn, "screen-length 0 temporary", logger)
 
-                # Ahora send_command() con timeout MUCHO más largo
-                # El output de display ont info es extenso (100+ líneas) y puede tardar
+                # Usar send_command_timing() en lugar de send_command() para evitar problemas
+                # con detección de prompt. Este método espera un tiempo fijo en vez de buscar el prompt.
                 cmd = f"display ont info {port} {onu_id}"
                 logger(f"Enviando comando: {cmd}")
-                out = conn.send_command(
-                    cmd, 
-                    read_timeout=60,  # Aumentado de 10 a 60 segundos
-                    delay_factor=8,   # Factor de delay más alto
-                    strip_prompt=False,  # No remover el prompt para evitar problemas de matching
-                    strip_command=False  # No remover el comando del output
-                )
+                
+                # send_command_timing() espera un tiempo fijo (default ~1s, ajustable con delay_factor)
+                # y retorna todo lo que recibió. Más predecible que esperar el prompt.
+                out = conn.send_command_timing(cmd, delay_factor=4)  # ~4 segundos de espera
                 
                 # DEBUG: Mostrar TODO el output capturado
                 logger(f"[DEBUG] ========== OUTPUT COMPLETO (total {len(out)} chars) ==========")
