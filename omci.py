@@ -242,58 +242,20 @@ def check_onu_tr069_profile(conn, olt_name, slot, port, onu_id, logger):
                 # Entrar a interface gpon
                 gpon_cmd = f"interface gpon 0/{slot}"
                 validate_omci_output(conn, gpon_cmd, logger)
-                
-                # display ont info tiene paginación (10+ pantallas)
+
+                # Desactivar paginacion para capturar todo el output
+                validate_omci_output(conn, "screen-length 0 temporary", logger)
+
+                # Ejecutar display ont info sin paginacion
                 cmd = f"display ont info {port} {onu_id}"
+                out = validate_omci_output(conn, cmd, logger)
                 
-                # Enviar comando y esperar
-                import time as time_module
-                conn.write_channel(cmd + '\n')
-                time_module.sleep(2)
-                
-                # Leer primera respuesta (puede ser prompt de confirmación)
-                out = conn.read_channel()
-                
-                # Si es un prompt de confirmación (ej: "{ <cr> }:"), enviar Enter
-                if "}:" in out or "{ <cr>" in out or len(out) < 50:
-                    conn.write_channel('\n')
-                    time_module.sleep(3)
-                
-                # Leer TODO el output con paginación
-                # El display ont info puede tener 100+ líneas, necesitamos leerlo completo
-                max_iterations = 100  # Aumentado de 15 a 100 para output largo
-                pagination_pause = 0.8  # Pequeña pausa entre páginas
-                
-                for i in range(max_iterations):
-                    chunk = conn.read_channel()
-                    if chunk:
-                        out += chunk
-                        
-                        # Detectar diferentes tipos de paginación
-                        has_pagination = (
-                            "---- More ----" in chunk or 
-                            "  ---- More" in chunk or
-                            "Press 'Q' to break" in chunk or
-                            "press q to quit" in chunk.lower() or
-                            " More " in chunk or
-                            "--More--" in chunk
-                        )
-                        
-                        if has_pagination:
-                            conn.write_channel(" ")
-                            time_module.sleep(pagination_pause)
-                        # Si vemos el prompt final (], MA5608T etc), terminamos
-                        elif any(p in chunk[-100:] for p in ["#", "MA5608T", "ZTE", ")#"]):
-                            # Hemos llegado al final del comando
-                            break
-                    else:
-                        # Sin más datos disponibles después de leer
-                        time_module.sleep(0.5)
-                        # Intentar una lectura final
-                        final_chunk = conn.read_channel()
-                        if final_chunk and any(p in final_chunk for p in ["#", "MA5608T", "ZTE"]):
-                            out += final_chunk
-                            break
+                # DEBUG: Loguear las líneas que contienen TR069 para diagnosticar
+                tr069_debug_lines = [line for line in out.splitlines() if "tr069" in line.lower()]
+                if tr069_debug_lines:
+                    logger(f"[DEBUG] Líneas TR069 capturadas: {tr069_debug_lines[:5]}")  # Primeras 5 líneas
+                else:
+                    logger(f"[DEBUG] No se encontraron líneas con 'tr069' en output de {len(out)} chars")
                 
             finally:
                 # Salir de la interfaz GPON para no afectar el flujo principal
