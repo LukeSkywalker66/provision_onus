@@ -250,7 +250,9 @@ def check_onu_tr069_profile(conn, olt_name, slot, port, onu_id, logger):
                 # porque send_command() espera el prompt completo y captura TODO el output
                 cmd = f"display ont info {port} {onu_id}"
                 logger(f"Enviando comando: {cmd}")
-                out = conn.send_command(cmd, expect_string=r"#", delay_factor=2, max_loops=1000)
+                # El prompt dentro de gpon es: MA5608T(config-if-gpon-0/X)#
+                # Usar un patrón regex que coincida con cualquier prompt que termine en #
+                out = conn.send_command(cmd, expect_string=r".*#", read_timeout=30, delay_factor=4)
                 
                 # DEBUG: Loguear las líneas que contienen TR069 para diagnosticar
                 tr069_debug_lines = [line for line in out.splitlines() if "tr069" in line.lower()]
