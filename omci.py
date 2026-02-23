@@ -9,58 +9,97 @@ BUSY_PATTERNS = [
 ]
 
 
+def _expand_onu_ranges(range_str):
+    """
+    Expande rangos de ONUs como "0-35,37-50,52-73" → [0,1,2,...,35,37,...,50,52,...,73]
+    """
+    onus = []
+    for part in range_str.split(','):
+        part = part.strip()
+        if '-' in part:
+            start, end = part.split('-')
+            onus.extend(range(int(start), int(end) + 1))
+        else:
+            onus.append(int(part))
+    return onus
+
+
 def get_onus_with_tr069_bulk(conn, olt_name, logger):
     """
     Consulta masiva a la OLT para obtener todas las ONUs que YA tienen TR-069 configurado.
     
-    Ejecuta 'display service-port all' y parsea el resultado para identificar
-    ONUs con service-ports en VLAN TR-069 (típicamente VLAN 150).
+    1. Ejecuta: display ont tr069-server-profile all
+    2. Para cada profile ID, ejecuta: display ont tr069-server-profile bound-info profile-id X
+    3. Parsea resultado para obtener lista de ONUs por puerto/slot
     
     Retorna:
         set de tuplas (slot, port, onu_id) para ONUs que YA tienen TR-069
-        ejemplo: {(0, 0, 5), (0, 1, 12), ...}
+        ejemplo: {(0, 0, 5), (0, 0, 12), (0, 2, 23), ...}
     
     Compatible: Huawei OLTs
     """
     try:
         if olt_name == "ZTE C600":
-            logger("[INFO] Prefiltrado masivo no soportado para ZTE C600")
+            logger("[INFO] Prefiltrado masivo TR-069 no soportado para ZTE C600")
             return set()
         
-        logger(f"[INFO] Consultando ONUs con TR-069 en {olt_name}...")
-        
-        # Enviar comando masivo
-        out = validate_omci_output(conn, "display service-port all", logger)
-        
-        # Parsear service-ports para encontrar ONUs con TR-069
-        # Formato típico de línea:
-        # SP-ID  VlanId    PortType  P/S/P             OntId  GemPort  UsMEID  DsMEID
-        # 1      150       ETH       0/0/0             0      2        -       -
-        # 2      150       ETH       0/0/1             5      3        -       -
-        
         onus_tr069 = set()
+        logger(f"[INFO] Consultando TR-069 profiles en {olt_name}...")
         
-        # Buscar líneas que contengan VLAN 150 (típico para TR-069)
+        # PASO 1: Obtener lista de todos los TR-069 profiles
+        out = validate_omci_output(conn, "display ont tr069-server-profile all", logger)
+        
+        profile_ids = []
         for line in out.splitlines():
-            # Saltar líneas vacías, encabezados y separadores
-            if not line.strip() or "SP-ID" in line or "---" in line or "More" in line:
-                continue
-            
-            # Parsear línea: buscar patrón con VLAN 150 y puerto GPON
-            # Ejemplo: "1      150       ETH       0/0/0             0      2        -       -"
-            match = re.search(
-                r'^\s*\d+\s+150\s+\w+\s+(\d+)/(\d+)/(\d+)\s+(\d+)',  # VLAN150 + P/S/P + OntId
-                line
-            )
+            # Buscar líneas con profile ID: "1              tr069-server-profile_1           1849"
+            match = re.search(r'^\s*(\d+)\s+tr069-server-profile', line)
             if match:
-                slot = int(match.group(1))
-                subport = int(match.group(2))
-                phyport = int(match.group(3))
-                onu_id = int(match.group(4))
+                profile_ids.append(int(match.group(1)))
+        
+        if not profile_ids:
+            logger(f"[INFO] No hay profiles TR-069 configurados en {olt_name}")
+            return set()
+        
+        logger(f"[INFO] Profiles TR-069 encontrados: {profile_ids}")
+        
+        # PASO 2: Para cada profile, obtener ONUs ligadas
+        for prof_id in profile_ids:
+            cmd = f"display ont tr069-server-profile bound-info profile-id {prof_id}"
+            out = validate_omci_output(conn, cmd, logger)
+            
+            # Parsear output: formato es "F/S/P       ONT List" con ranges como "0-35,37-50,52-73"
+            # Ejemplo:
+            # 0/0/0       0-35,37-50,52-73,75-79,82,85-87,90-94,96,99-100,118,121-122,124
+            # 0/0/2       0-21,23,25,27-28,30-33,35-36,38,40-44,46,48,50-51,53-60,62-63,65-66
+            
+            current_port = None
+            for line in out.splitlines():
+                line = line.strip()
+                if not line or "F/S/P" in line or "---" in line:
+                    continue
                 
-                # Agregar tupla identificadora
-                onus_tr069.add((slot, subport, onu_id))
-                logger(f"  → ONU {onu_id} en puerto {slot}/{subport}/{phyport} con VLAN150 (TR-069)")
+                # Línea con F/S/P y lista de ONUs
+                if re.match(r'^\d+/\s*\d+/\s*\d+', line):
+                    parts = line.split()
+                    if len(parts) >= 2:
+                        current_port = parts[0]  # "0/0/0"
+                        onu_ranges = ' '.join(parts[1:])  # "0-35,37-50,52-73,..."
+                        
+                        # Expandir rangos
+                        try:
+                            onu_list = _expand_onu_ranges(onu_ranges)
+                            
+                            # Parsear puerto F/S/P
+                            fsp = current_port.split('/')
+                            slot, subport, phyport = int(fsp[0]), int(fsp[1]), int(fsp[2])
+                            
+                            # Agregar todos los ONUs al set
+                            for onu_id in onu_list:
+                                onus_tr069.add((slot, phyport, onu_id))
+                            
+                            logger(f"  → Profile {prof_id}: {len(onu_list)} ONUs en puerto {current_port}")
+                        except Exception as e:
+                            logger(f"    [WARN] Error parseando ONUs en {current_port}: {e}")
         
         logger(f"[INFO] Total ONUs con TR-069 detectadas: {len(onus_tr069)}")
         return onus_tr069
