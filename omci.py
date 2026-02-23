@@ -1,4 +1,5 @@
 import time
+import re
 from config import ACS, EXEC, OLT_COMMANDS
 
 BUSY_PATTERNS = [
@@ -6,6 +7,67 @@ BUSY_PATTERNS = [
     "The percentage of saved data on",
     "Failure: System is busy",
 ]
+
+
+def get_onus_with_tr069_bulk(conn, olt_name, logger):
+    """
+    Consulta masiva a la OLT para obtener todas las ONUs que YA tienen TR-069 configurado.
+    
+    Ejecuta 'display service-port all' y parsea el resultado para identificar
+    ONUs con service-ports en VLAN TR-069 (típicamente VLAN 150).
+    
+    Retorna:
+        set de tuplas (slot, port, onu_id) para ONUs que YA tienen TR-069
+        ejemplo: {(0, 0, 5), (0, 1, 12), ...}
+    
+    Compatible: Huawei OLTs
+    """
+    try:
+        if olt_name == "ZTE C600":
+            logger("[INFO] Prefiltrado masivo no soportado para ZTE C600")
+            return set()
+        
+        logger(f"[INFO] Consultando ONUs con TR-069 en {olt_name}...")
+        
+        # Enviar comando masivo
+        out = validate_omci_output(conn, "display service-port all", logger)
+        
+        # Parsear service-ports para encontrar ONUs con TR-069
+        # Formato típico de línea:
+        # SP-ID  VlanId    PortType  P/S/P             OntId  GemPort  UsMEID  DsMEID
+        # 1      150       ETH       0/0/0             0      2        -       -
+        # 2      150       ETH       0/0/1             5      3        -       -
+        
+        onus_tr069 = set()
+        
+        # Buscar líneas que contengan VLAN 150 (típico para TR-069)
+        for line in out.splitlines():
+            # Saltar líneas vacías, encabezados y separadores
+            if not line.strip() or "SP-ID" in line or "---" in line or "More" in line:
+                continue
+            
+            # Parsear línea: buscar patrón con VLAN 150 y puerto GPON
+            # Ejemplo: "1      150       ETH       0/0/0             0      2        -       -"
+            match = re.search(
+                r'^\s*\d+\s+150\s+\w+\s+(\d+)/(\d+)/(\d+)\s+(\d+)',  # VLAN150 + P/S/P + OntId
+                line
+            )
+            if match:
+                slot = int(match.group(1))
+                subport = int(match.group(2))
+                phyport = int(match.group(3))
+                onu_id = int(match.group(4))
+                
+                # Agregar tupla identificadora
+                onus_tr069.add((slot, subport, onu_id))
+                logger(f"  → ONU {onu_id} en puerto {slot}/{subport}/{phyport} con VLAN150 (TR-069)")
+        
+        logger(f"[INFO] Total ONUs con TR-069 detectadas: {len(onus_tr069)}")
+        return onus_tr069
+    
+    except Exception as e:
+        logger(f"[WARN] Error en prefiltrado masivo: {e} (continuando con validación individual)")
+        return set()
 
 
 def execute_command(conn, cmd, logger, log_prefix="Enviando comando"):

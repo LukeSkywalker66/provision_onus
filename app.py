@@ -10,7 +10,7 @@ from gui import App
 from csv_logic import parse_smartolt_csv
 from ssh_client import connect_olt, close_olt
 from config import OLT_MAP
-from omci import provision_onu, rollback_onu_serviceport, check_onu_tr069_profile   # NUEVO
+from omci import provision_onu, rollback_onu_serviceport, check_onu_tr069_profile, get_onus_with_tr069_bulk
 from datetime import datetime
 
 
@@ -203,20 +203,29 @@ def main():
             elapsed_total = 0.0
             olt_provisioned = 0
             olt_skipped = 0
+            
+            # PREFILTRADO MASIVO: Si skip_tr069_configured está habilitado, obtener todas las ONUs con TR-069 de una vez
+            onus_tr069_prefiltered = set()
+            if ui.skip_tr069_configured.get():
+                onus_tr069_prefiltered = get_onus_with_tr069_bulk(conn, olt_name, ui.write_log)
+                
+                # Filtrar items localmente para remover ONUs que ya tienen TR-069
+                original_count = len(items)
+                items = [r for r in items if (r["slot"], r["port"], r["onu_id"]) not in onus_tr069_prefiltered]
+                skipped_by_bulk = original_count - len(items)
+                
+                if skipped_by_bulk > 0:
+                    ui.write_log(f"[INFO] {skipped_by_bulk} ONUs saltadas por TR-069 preexistente")
+                    olt_skipped += skipped_by_bulk
+                    total_skipped += skipped_by_bulk
+                
+                total_items = len(items)  # Actualizar total para la barra de progreso
+            
             for r in items:
                 start = time.time()
                 was_skipped = False
                 try:
                     conn = mgr.conn  # conexión vigente
-                    
-                    # Validación: si skip_tr069_configured está habilitado, verificar si ya está configurada
-                    if ui.skip_tr069_configured.get():
-                        ui.write_log(f"[INFO] Chequeando TR-069 en ONU {r['onu_id']} ({r.get('pppoe_user', 'N/A')})...")
-                        if check_onu_tr069_profile(conn, olt_name, r["slot"], r["port"], r["onu_id"], ui.write_log):
-                            was_skipped = True
-                            olt_skipped += 1
-                            total_skipped += 1
-                            continue  # Salta al finally y luego a la siguiente iteración
                     
                     if ui.rollback_serviceport.get():
                         rollback_onu_serviceport(
