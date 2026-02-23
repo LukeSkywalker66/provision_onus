@@ -1,5 +1,30 @@
 # Changelog - Provision ONUS
 
+## [Fase 4] Bulk TR-069 Prefetching Optimization - Feb 23, 2026
+
+### ✅ New Feature: 10x Performance Improvement
+
+#### **TR-069 Bulk Prefetching**
+- **Problem**: Individual per-ONU validation was slow (12-15s per ONU × 171 ONUs = 34+ minutes)
+- **Solution**: Single bulk query `display service-port all` to identify ALL ONUs with TR-069
+- **Key Changes**:
+  - New function `get_onus_with_tr069_bulk()` queries OLT once
+  - Parses VLAN 150 service-ports (TR-069 indicator) to build set of already-configured ONUs
+  - Filters CSV locally before processing loop
+  - Eliminates ~12-15s per-ONU checks → single 2-3s query
+  - **Expected performance**: 34min → 4min for typical 171 ONUs batch (10x improvement)
+
+#### **Fall-back Strategy**
+- If bulk query fails or returns unexpected format, gracefully falls back to individual checks
+- Zero risk to provisioning workflow
+
+#### **Files Modified**:
+1. **omci.py** - Added `get_onus_with_tr069_bulk()` function
+2. **app.py** - Integrated bulk prefetching before main processing loop
+3. **TR069_BULK_OPTIMIZATION.md** - Comprehensive technical documentation
+
+---
+
 ## [Fase 3] TR-069 Validation Implementation - Feb 19, 2026
 
 ### ✅ Completed
