@@ -210,8 +210,9 @@ def main():
                 onus_tr069_prefiltered = get_onus_with_tr069_bulk(conn, olt_name, ui.write_log)
                 
                 # Filtrar items localmente para remover ONUs que ya tienen TR-069
+                # Frame es implícitamente 0 en Huawei MA5608T (single-frame architecture)
                 original_count = len(items)
-                items = [r for r in items if (r["slot"], r["port"], r["onu_id"]) not in onus_tr069_prefiltered]
+                items = [r for r in items if (0, r["slot"], r["port"], r["onu_id"]) not in onus_tr069_prefiltered]
                 skipped_by_bulk = original_count - len(items)
                 
                 if skipped_by_bulk > 0:

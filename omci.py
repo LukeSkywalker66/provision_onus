@@ -30,11 +30,12 @@ def get_onus_with_tr069_bulk(conn, olt_name, logger):
     
     1. Ejecuta: display ont tr069-server-profile all
     2. Para cada profile ID, ejecuta: display ont tr069-server-profile bound-info profile-id X
-    3. Parsea resultado para obtener lista de ONUs por puerto/slot
+    3. Parsea resultado para obtener lista de ONUs por Frame/Slot/Port
     
     Retorna:
-        set de tuplas (slot, port, onu_id) para ONUs que YA tienen TR-069
-        ejemplo: {(0, 0, 5), (0, 0, 12), (0, 2, 23), ...}
+        set de tuplas (frame, slot, port, onu_id) para ONUs que YA tienen TR-069
+        ejemplo: {(0, 0, 0, 5), (0, 0, 0, 12), (0, 0, 2, 23), ...}
+        (Frame es implícitamente 0 en Huawei MA5608T single-frame architecture)
     
     Compatible: Huawei OLTs
     """
@@ -72,7 +73,6 @@ def get_onus_with_tr069_bulk(conn, olt_name, logger):
             # 0/0/0       0-35,37-50,52-73,75-79,82,85-87,90-94,96,99-100,118,121-122,124
             # 0/0/2       0-21,23,25,27-28,30-33,35-36,38,40-44,46,48,50-51,53-60,62-63,65-66
             
-            current_port = None
             for line in out.splitlines():
                 line = line.strip()
                 if not line or "F/S/P" in line or "---" in line:
@@ -82,24 +82,26 @@ def get_onus_with_tr069_bulk(conn, olt_name, logger):
                 if re.match(r'^\d+/\s*\d+/\s*\d+', line):
                     parts = line.split()
                     if len(parts) >= 2:
-                        current_port = parts[0]  # "0/0/0"
-                        onu_ranges = ' '.join(parts[1:])  # "0-35,37-50,52-73,..."
+                        fsp_str = parts[0]  # "0/0/0"
+                        onu_ranges_str = ' '.join(parts[1:])  # "0-35,37-50,52-73,..."
                         
-                        # Expandir rangos
+                        # Expandir rangos de ONUs
                         try:
-                            onu_list = _expand_onu_ranges(onu_ranges)
+                            onu_list = _expand_onu_ranges(onu_ranges_str)
                             
-                            # Parsear puerto F/S/P
-                            fsp = current_port.split('/')
-                            slot, subport, phyport = int(fsp[0]), int(fsp[1]), int(fsp[2])
+                            # Parsear F/S/P (Frame/Slot/Port)
+                            fsp_parts = fsp_str.split('/')
+                            frame = int(fsp_parts[0])
+                            slot = int(fsp_parts[1])
+                            port = int(fsp_parts[2])
                             
-                            # Agregar todos los ONUs al set
+                            # Crear tupla (frame, slot, port, onu_id) para cada ONU
                             for onu_id in onu_list:
-                                onus_tr069.add((slot, phyport, onu_id))
+                                onus_tr069.add((frame, slot, port, onu_id))
                             
-                            logger(f"  → Profile {prof_id}: {len(onu_list)} ONUs en puerto {current_port}")
+                            logger(f"  → Profile {prof_id}: {len(onu_list)} ONUs en F/S/P {fsp_str}")
                         except Exception as e:
-                            logger(f"    [WARN] Error parseando ONUs en {current_port}: {e}")
+                            logger(f"    [WARN] Error parseando ONUs en {fsp_str}: {e}")
         
         logger(f"[INFO] Total ONUs con TR-069 detectadas: {len(onus_tr069)}")
         return onus_tr069
