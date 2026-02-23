@@ -6,12 +6,15 @@
 
 #### **TR-069 Bulk Prefetching**
 - **Problem**: Individual per-ONU validation was slow (12-15s per ONU × 171 ONUs = 34+ minutes)
-- **Solution**: Single bulk query `display service-port all` to identify ALL ONUs with TR-069
+- **Solution**: Bulk query using `display ont tr069-server-profile all` + `display ont tr069-server-profile bound-info profile-id X` to identify ALL ONUs with TR-069 in one operation
+- **Why This Command**: Directly queries TR-069 profiles instead of inferring from VLAN 150, eliminating false positives and ensuring accuracy
 - **Key Changes**:
-  - New function `get_onus_with_tr069_bulk()` queries OLT once
-  - Parses VLAN 150 service-ports (TR-069 indicator) to build set of already-configured ONUs
+  - New function `get_onus_with_tr069_bulk()` executes two queries
+  - Parses profile ID list and ONT range lists from each profile
+  - Expands ranges locally (e.g., "0-35,37-50" → [0...35,37...50])
+  - Builds set of already-configured ONUs
   - Filters CSV locally before processing loop
-  - Eliminates ~12-15s per-ONU checks → single 2-3s query
+  - Eliminates ~12-15s per-ONU checks → ~2-5s total bulk query time
   - **Expected performance**: 34min → 4min for typical 171 ONUs batch (10x improvement)
 
 #### **Fall-back Strategy**
