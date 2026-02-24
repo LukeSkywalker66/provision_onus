@@ -14,7 +14,9 @@ def _expand_onu_ranges(range_str):
     Expande rangos de ONUs como "0-35,37-50,52-73" → [0,1,2,...,35,37,...,50,52,...,73]
     """
     onus = []
-    for part in range_str.split(','):
+    # Mantener solo digitos, comas y guiones para evitar prompts mezclados
+    cleaned = re.sub(r"[^0-9,\-]", "", range_str)
+    for part in cleaned.split(','):
         part = part.strip()
         if not part:
             continue
