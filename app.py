@@ -214,6 +214,10 @@ def main():
                 original_count = len(items)
                 items = [r for r in items if (0, r["slot"], r["port"], r["onu_id"]) not in onus_tr069_prefiltered]
                 skipped_by_bulk = original_count - len(items)
+                remaining_count = len(items)
+                ui.write_log(
+                    f"[INFO] ONUs en CSV: {original_count} | TR-069 configuradas: {skipped_by_bulk} | sin TR-069: {remaining_count}"
+                )
                 
                 if skipped_by_bulk > 0:
                     ui.write_log(f"[INFO] {skipped_by_bulk} ONUs saltadas por TR-069 preexistente")

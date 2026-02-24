@@ -16,6 +16,8 @@ def _expand_onu_ranges(range_str):
     onus = []
     for part in range_str.split(','):
         part = part.strip()
+        if not part:
+            continue
         if '-' in part:
             start, end = part.split('-')
             onus.extend(range(int(start), int(end) + 1))
@@ -67,41 +69,65 @@ def get_onus_with_tr069_bulk(conn, olt_name, logger):
         for prof_id in profile_ids:
             cmd = f"display ont tr069-server-profile bound-info profile-id {prof_id}"
             out = validate_omci_output(conn, cmd, logger)
+            profile_onus = set()
             
             # Parsear output: formato es "F/S/P       ONT List" con ranges como "0-35,37-50,52-73"
             # Ejemplo:
             # 0/0/0       0-35,37-50,52-73,75-79,82,85-87,90-94,96,99-100,118,121-122,124
             # 0/0/2       0-21,23,25,27-28,30-33,35-36,38,40-44,46,48,50-51,53-60,62-63,65-66
             
+            current_fsp = None
+            current_ranges = ""
             for line in out.splitlines():
+                raw_line = line.rstrip()
                 line = line.strip()
                 if not line or "F/S/P" in line or "---" in line:
                     continue
-                
-                # Línea con F/S/P y lista de ONUs
-                if re.match(r'^\d+/\s*\d+/\s*\d+', line):
-                    parts = line.split()
-                    if len(parts) >= 2:
-                        fsp_str = parts[0]  # "0/0/0"
-                        onu_ranges_str = ' '.join(parts[1:])  # "0-35,37-50,52-73,..."
-                        
-                        # Expandir rangos de ONUs
+
+                # Línea con F/S/P y lista de ONUs (soporta espacios en 0/ 1/0)
+                fsp_match = re.match(r'^(\d+)\s*/\s*(\d+)\s*/\s*(\d+)\s+(.+)$', line)
+                if fsp_match:
+                    # Procesar el bloque anterior si existía
+                    if current_fsp and current_ranges:
                         try:
-                            onu_list = _expand_onu_ranges(onu_ranges_str)
-                            
-                            # Parsear F/S/P (Frame/Slot/Port)
-                            fsp_parts = fsp_str.split('/')
-                            frame = int(fsp_parts[0])
-                            slot = int(fsp_parts[1])
-                            port = int(fsp_parts[2])
-                            
-                            # Crear tupla (frame, slot, port, onu_id) para cada ONU
+                            ranges_clean = current_ranges.replace(" ", "")
+                            onu_list = _expand_onu_ranges(ranges_clean)
+                            frame, slot, port = current_fsp
                             for onu_id in onu_list:
-                                onus_tr069.add((frame, slot, port, onu_id))
-                            
-                            logger(f"  → Profile {prof_id}: {len(onu_list)} ONUs en F/S/P {fsp_str}")
+                                onu_tuple = (frame, slot, port, onu_id)
+                                onus_tr069.add(onu_tuple)
+                                profile_onus.add(onu_tuple)
                         except Exception as e:
-                            logger(f"    [WARN] Error parseando ONUs en {fsp_str}: {e}")
+                            logger(f"    [WARN] Error parseando ONUs en {current_fsp}: {e}")
+
+                    # Iniciar nuevo bloque
+                    frame = int(fsp_match.group(1))
+                    slot = int(fsp_match.group(2))
+                    port = int(fsp_match.group(3))
+                    current_fsp = (frame, slot, port)
+                    current_ranges = fsp_match.group(4)
+                    continue
+
+                # Línea de continuación: sumar rangos al F/S/P actual
+                if current_fsp:
+                    current_ranges = f"{current_ranges} {line}"
+
+            # Procesar el último bloque
+            if current_fsp and current_ranges:
+                try:
+                    ranges_clean = current_ranges.replace(" ", "")
+                    onu_list = _expand_onu_ranges(ranges_clean)
+                    frame, slot, port = current_fsp
+                    for onu_id in onu_list:
+                        onu_tuple = (frame, slot, port, onu_id)
+                        onus_tr069.add(onu_tuple)
+                        profile_onus.add(onu_tuple)
+                except Exception as e:
+                    logger(f"    [WARN] Error parseando ONUs en {current_fsp}: {e}")
+
+            logger(
+                f"[INFO] Chequeando bound-info profile {prof_id} de TR-069: {len(profile_onus)} ONUs configuradas"
+            )
         
         logger(f"[INFO] Total ONUs con TR-069 detectadas: {len(onus_tr069)}")
         return onus_tr069
