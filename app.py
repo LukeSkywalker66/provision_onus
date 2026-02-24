@@ -225,6 +225,12 @@ def main():
                     total_skipped += skipped_by_bulk
                 
                 total_items = len(items)  # Actualizar total para la barra de progreso
+                ui.update_progress(
+                    done_local,
+                    total_items,
+                    provisioned=total_provisioned,
+                    skipped=total_skipped,
+                )
             
             for r in items:
                 start = time.time()
