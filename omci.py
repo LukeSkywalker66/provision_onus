@@ -26,6 +26,30 @@ def _expand_onu_ranges(range_str):
     return onus
 
 
+def _read_command_with_paging(conn, cmd, logger, delay_factor=2, max_pages=200):
+    """
+    Ejecuta comando y consume paginacion para evitar que queden datos en el canal.
+    """
+    out = validate_omci_output(conn, cmd, logger)
+    markers = ["---- More", "Press 'Q'", "Press to continue"]
+    last_chunk = out
+    pages = 0
+
+    while any(marker in last_chunk for marker in markers):
+        pages += 1
+        if pages > max_pages:
+            break
+        conn.write_channel(" ")
+        time.sleep(0.5)
+        last_chunk = conn.read_channel()
+        out += last_chunk
+
+    # Limpiar cualquier residuo en el buffer
+    time.sleep(0.2)
+    out += conn.read_channel()
+    return out
+
+
 def get_onus_with_tr069_bulk(conn, olt_name, logger):
     """
     Consulta masiva a la OLT para obtener todas las ONUs que YA tienen TR-069 configurado.
@@ -50,7 +74,7 @@ def get_onus_with_tr069_bulk(conn, olt_name, logger):
         logger(f"[INFO] Consultando TR-069 profiles en {olt_name}...")
         
         # PASO 1: Obtener lista de todos los TR-069 profiles
-        out = validate_omci_output(conn, "display ont tr069-server-profile all", logger)
+        out = _read_command_with_paging(conn, "display ont tr069-server-profile all", logger)
         
         profile_ids = []
         for line in out.splitlines():
@@ -68,7 +92,7 @@ def get_onus_with_tr069_bulk(conn, olt_name, logger):
         # PASO 2: Para cada profile, obtener ONUs ligadas
         for prof_id in profile_ids:
             cmd = f"display ont tr069-server-profile bound-info profile-id {prof_id}"
-            out = validate_omci_output(conn, cmd, logger)
+            out = _read_command_with_paging(conn, cmd, logger)
             profile_onus = set()
             
             # Parsear output: formato es "F/S/P       ONT List" con ranges como "0-35,37-50,52-73"
