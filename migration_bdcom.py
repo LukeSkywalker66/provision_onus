@@ -5,14 +5,6 @@ from typing import Dict, List, Tuple
 from librouteros import connect as routeros_connect
 
 
-# Mapeo estático BDCOM -> ZTE (completar según despliegue real)
-MAPPING_PUERTOS = {
-    "gpon0/10": "gpon_olt-1/4/10",
-    "gpon0/1": "gpon_olt-1/4/1",
-    "gpon0/2": "gpon_olt-1/4/2",
-}
-
-
 def normalize_mac(raw: str) -> str:
     cleaned = re.sub(r"[^0-9A-Fa-f]", "", raw or "").lower()
     if len(cleaned) != 12:
@@ -170,7 +162,24 @@ def query_mikrotik_pppoe_users(host: str, username: str, password: str, port: in
     return mac_to_user
 
 
-def build_migration_rows(mac_records: List[Dict[str, str]], mac_to_pppoe: Dict[str, str]):
+def build_pon_destino(source_port: str, zte_board: str) -> str:
+    """
+    Convierte puerto BDCOM (gpon0/X) a formato ZTE en espejo:
+    gpon_olt-{zte_board}/{X}
+    """
+    source = (source_port or "").strip().lower()
+    board = (zte_board or "").strip().strip("/")
+    if not source or not board:
+        return ""
+
+    match = re.search(r"gpon0/(\d+)$", source)
+    if not match:
+        return ""
+    port = match.group(1)
+    return f"gpon_olt-{board}/{port}"
+
+
+def build_migration_rows(mac_records: List[Dict[str, str]], mac_to_pppoe: Dict[str, str], zte_board: str):
     rows = []
     matched = 0
     for rec in mac_records:
@@ -179,7 +188,7 @@ def build_migration_rows(mac_records: List[Dict[str, str]], mac_to_pppoe: Dict[s
             continue
         matched += 1
         source_port = str(rec.get("source_port", "")).lower().strip()
-        pon_destino = MAPPING_PUERTOS.get(source_port, "")
+        pon_destino = build_pon_destino(source_port, zte_board)
         sn_clean = str(rec.get("sn", "")).replace(":", "")
         rows.append(
             {

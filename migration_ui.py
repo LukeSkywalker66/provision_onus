@@ -1,4 +1,5 @@
 import os
+import re
 import threading
 import tkinter as tk
 from tkinter import filedialog, scrolledtext, messagebox
@@ -24,6 +25,7 @@ class MigrationBDCOMWindow(tk.Toplevel):
         self.mikrotik_user = tk.StringVar()
         self.mikrotik_pass = tk.StringVar()
         self.mikrotik_port = tk.StringVar(value="8728")
+        self.zte_board = tk.StringVar()
 
         self._build()
 
@@ -50,6 +52,8 @@ class MigrationBDCOMWindow(tk.Toplevel):
         tk.Entry(frame_mk, textvariable=self.mikrotik_pass, show="*", width=20).grid(row=0, column=5, padx=6, pady=4)
         tk.Label(frame_mk, text="Puerto:").grid(row=0, column=6, sticky="w", padx=6, pady=4)
         tk.Entry(frame_mk, textvariable=self.mikrotik_port, width=8).grid(row=0, column=7, padx=6, pady=4)
+        tk.Label(frame_mk, text="Placa ZTE Destino (ej: 1/4):").grid(row=1, column=0, sticky="w", padx=6, pady=4)
+        tk.Entry(frame_mk, textvariable=self.zte_board, width=16).grid(row=1, column=1, padx=6, pady=4, sticky="w")
 
         frame_actions = tk.Frame(self)
         frame_actions.pack(fill="x", padx=10, pady=8)
@@ -97,6 +101,9 @@ class MigrationBDCOMWindow(tk.Toplevel):
             raise ValueError("Ingresa usuario de MikroTik")
         if not self.mikrotik_port.get().strip().isdigit():
             raise ValueError("Puerto de MikroTik invalido")
+        zte_board = self.zte_board.get().strip()
+        if not re.match(r"^\d+/\d+$", zte_board):
+            raise ValueError("Placa ZTE Destino invalida (formato esperado: 1/4)")
 
     def _run_generate(self):
         try:
@@ -121,7 +128,11 @@ class MigrationBDCOMWindow(tk.Toplevel):
             self._write(f"[OK] MikroTik consultado: {len(mac_to_pppoe)} MACs con usuario PPPoE")
 
             self._write("[4/4] Construyendo CSV final de migracion...")
-            rows, matched = build_migration_rows(mac_records, mac_to_pppoe)
+            rows, matched = build_migration_rows(
+                mac_records,
+                mac_to_pppoe,
+                self.zte_board.get().strip(),
+            )
             output_path = os.path.join(os.getcwd(), "migracion_zte_final.csv")
             export_migration_csv(output_path, rows)
 
