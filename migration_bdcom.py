@@ -5,6 +5,14 @@ from typing import Dict, List, Tuple
 from librouteros import connect as routeros_connect
 
 
+# Mapeo estático BDCOM -> ZTE (completar según despliegue real)
+MAPPING_PUERTOS = {
+    "gpon0/10": "gpon_olt-1/4/10",
+    "gpon0/1": "gpon_olt-1/4/1",
+    "gpon0/2": "gpon_olt-1/4/2",
+}
+
+
 def normalize_mac(raw: str) -> str:
     cleaned = re.sub(r"[^0-9A-Fa-f]", "", raw or "").lower()
     if len(cleaned) != 12:
@@ -14,7 +22,7 @@ def normalize_mac(raw: str) -> str:
 
 def parse_bdcom_running_config(file_path: str) -> Dict[Tuple[int, int], Dict[str, str]]:
     """
-    Retorna mapa {(pon_port, onu_id): {"sn": str, "ont_model": str}}.
+    Retorna mapa {(pon_port, onu_id): {"sn": str, "ont_model": str, "ont_mode": str}}.
     """
     with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
         text = f.read()
@@ -28,6 +36,7 @@ def parse_bdcom_running_config(file_path: str) -> Dict[Tuple[int, int], Dict[str
     re_int_logical = re.compile(r"^\s*interface\s+GPON0/(\d+):(\d+)\s*$", re.IGNORECASE)
     re_bind = re.compile(r"\bgpon\s+bind-onu\s+sn\s+(\S+)\s+(\d+)\b", re.IGNORECASE)
     re_model = re.compile(r"\bgpon\s+onu\s+model-id\s+(\S+)\b", re.IGNORECASE)
+    re_flow_profile = re.compile(r"\bgpon\s+onu\s+flow-mapping-profile\s+(\S+)\b", re.IGNORECASE)
 
     for line in lines:
         m_physical = re_int_physical.match(line)
@@ -40,6 +49,11 @@ def parse_bdcom_running_config(file_path: str) -> Dict[Tuple[int, int], Dict[str
         if m_logical:
             current_pon_port = int(m_logical.group(1))
             current_logical = int(m_logical.group(2))
+            key = (current_pon_port, current_logical)
+            if key not in data:
+                data[key] = {"sn": "", "ont_model": "", "ont_mode": "BRIDGE"}
+            elif not data[key].get("ont_mode"):
+                data[key]["ont_mode"] = "BRIDGE"
             continue
 
         m_bind = re_bind.search(line)
@@ -48,7 +62,7 @@ def parse_bdcom_running_config(file_path: str) -> Dict[Tuple[int, int], Dict[str
             onu_id = int(m_bind.group(2))
             key = (current_pon_port, onu_id)
             if key not in data:
-                data[key] = {"sn": sn, "ont_model": ""}
+                data[key] = {"sn": sn, "ont_model": "", "ont_mode": ""}
             else:
                 data[key]["sn"] = sn
             continue
@@ -57,9 +71,17 @@ def parse_bdcom_running_config(file_path: str) -> Dict[Tuple[int, int], Dict[str
         if m_model and current_pon_port is not None and current_logical is not None:
             key = (current_pon_port, current_logical)
             if key not in data:
-                data[key] = {"sn": "", "ont_model": m_model.group(1).strip()}
+                data[key] = {"sn": "", "ont_model": m_model.group(1).strip(), "ont_mode": ""}
             else:
                 data[key]["ont_model"] = m_model.group(1).strip()
+
+        m_flow = re_flow_profile.search(line)
+        if m_flow and current_pon_port is not None and current_logical is not None:
+            profile_name = m_flow.group(1).strip().lower()
+            key = (current_pon_port, current_logical)
+            if key not in data:
+                data[key] = {"sn": "", "ont_model": "", "ont_mode": ""}
+            data[key]["ont_mode"] = "ROUTER" if "-hgu" in profile_name else "BRIDGE"
 
     return data
 
@@ -98,13 +120,16 @@ def parse_bdcom_mac_table(file_path: str, running_map: Dict[Tuple[int, int], Dic
         seen.add(key)
 
         base = running_map.get(key, {"sn": "", "ont_model": ""})
+        source_port = f"gpon0/{pon_port}".lower()
         records.append(
             {
                 "mac": mac,
                 "pon_port": pon_port,
                 "onu_id": onu_id,
+                "source_port": source_port,
                 "sn": base.get("sn", ""),
                 "ont_model": base.get("ont_model", ""),
+                "ont_mode": base.get("ont_mode", ""),
             }
         )
 
@@ -153,20 +178,24 @@ def build_migration_rows(mac_records: List[Dict[str, str]], mac_to_pppoe: Dict[s
         if not user:
             continue
         matched += 1
+        source_port = str(rec.get("source_port", "")).lower().strip()
+        pon_destino = MAPPING_PUERTOS.get(source_port, "")
+        sn_clean = str(rec.get("sn", "")).replace(":", "")
         rows.append(
             {
-                "PON_DESTINO": "",
-                "ZTE_ONU_ID": "",
-                "SN": rec.get("sn", ""),
+                "PON_DESTINO": pon_destino,
+                "ZTE_ONU_ID": rec.get("onu_id", ""),
+                "SN": sn_clean,
                 "PPPoE_USER": user,
                 "ONT_MODEL": rec.get("ont_model", ""),
+                "ONT_MODE": rec.get("ont_mode", ""),
             }
         )
     return rows, matched
 
 
 def export_migration_csv(output_path: str, rows: List[Dict[str, str]]):
-    fields = ["PON_DESTINO", "ZTE_ONU_ID", "SN", "PPPoE_USER", "ONT_MODEL"]
+    fields = ["PON_DESTINO", "ZTE_ONU_ID", "SN", "PPPoE_USER", "ONT_MODEL", "ONT_MODE"]
     with open(output_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fields)
         writer.writeheader()
