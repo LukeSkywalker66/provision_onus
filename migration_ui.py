@@ -62,14 +62,24 @@ class MigrationBDCOMWindow(tk.Toplevel):
         self.log.pack(fill="both", expand=True, padx=10, pady=8)
 
     def _browse_running(self):
-        p = filedialog.askopenfilename(filetypes=[("Text files", "*.txt"), ("All files", "*.*")])
+        p = filedialog.askopenfilename(
+            parent=self,
+            filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+        )
         if p:
             self.running_path.set(p)
+        self.lift()
+        self.focus_force()
 
     def _browse_mac(self):
-        p = filedialog.askopenfilename(filetypes=[("Text files", "*.txt"), ("All files", "*.*")])
+        p = filedialog.askopenfilename(
+            parent=self,
+            filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+        )
         if p:
             self.mac_path.set(p)
+        self.lift()
+        self.focus_force()
 
     def _write(self, msg):
         self.log.insert(tk.END, msg + "\n")
