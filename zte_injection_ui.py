@@ -1,7 +1,7 @@
 import os
 import threading
 import tkinter as tk
-from tkinter import filedialog, scrolledtext, messagebox
+from tkinter import filedialog, scrolledtext, messagebox, simpledialog
 
 from zte_injection import load_migration_csv, run_preprovision_zte
 
@@ -17,6 +17,7 @@ class ZTEInjectionWindow(tk.Toplevel):
         self.zte_password = tk.StringVar(value=default_password)
         self.zte_port = tk.StringVar(value=str(default_port or 22))
         self.csv_path = tk.StringVar(value=os.path.join(os.getcwd(), "migracion_zte_final.csv"))
+        self.simulation_mode = tk.BooleanVar(value=True)
 
         self._build()
 
@@ -40,13 +41,18 @@ class ZTEInjectionWindow(tk.Toplevel):
 
         frame_actions = tk.Frame(self)
         frame_actions.pack(fill="x", padx=10, pady=8)
+        tk.Checkbutton(
+            frame_actions,
+            text="Modo simulacion (sin cambios en OLT)",
+            variable=self.simulation_mode,
+        ).pack(side="left", padx=6)
         self.btn_start = tk.Button(
             frame_actions,
             text="Iniciar Pre-Aprovisionamiento",
             width=30,
             command=self._on_start,
         )
-        self.btn_start.pack(side="left")
+        self.btn_start.pack(side="left", padx=8)
         self.status = tk.Label(frame_actions, text="Listo")
         self.status.pack(side="left", padx=12)
 
@@ -96,6 +102,11 @@ class ZTEInjectionWindow(tk.Toplevel):
                 raise ValueError("No hay filas validas para procesar en el CSV")
 
             self._write(f"[INFO] Filas a procesar: {len(rows)}")
+            if self.simulation_mode.get():
+                self._write("[WARN] Ejecutando en MODO SIMULACION (dry-run)")
+            else:
+                self._write("[WARN] Ejecutando en MODO REAL sobre OLT productiva")
+
             result = run_preprovision_zte(
                 ip=self.zte_ip.get().strip(),
                 username=self.zte_user.get().strip(),
@@ -103,6 +114,7 @@ class ZTEInjectionWindow(tk.Toplevel):
                 port=int(self.zte_port.get().strip()),
                 rows=rows,
                 logger=self._write,
+                dry_run=self.simulation_mode.get(),
             )
 
             self._write("[OK] Pre-aprovisionamiento finalizado")
@@ -122,6 +134,16 @@ class ZTEInjectionWindow(tk.Toplevel):
             self.btn_start.config(state="normal")
 
     def _on_start(self):
+        if not self.simulation_mode.get():
+            confirmation = simpledialog.askstring(
+                "Confirmación requerida",
+                "Escribe EJECUTAR para confirmar inyección REAL en OLT productiva:",
+                parent=self,
+            )
+            if confirmation != "EJECUTAR":
+                self._write("[WARN] Confirmación inválida. Se cancela la ejecución real.")
+                return
+
         self.btn_start.config(state="disabled")
         t = threading.Thread(target=self._run, daemon=True)
         t.start()

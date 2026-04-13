@@ -101,7 +101,30 @@ def _has_error(output: str) -> bool:
     return any(token in text for token in ["error", "invalid", "failed", "failure"])
 
 
-def run_preprovision_zte(ip: str, username: str, password: str, rows: List[Dict[str, str]], logger, port: int = 22):
+def run_preprovision_zte(
+    ip: str,
+    username: str,
+    password: str,
+    rows: List[Dict[str, str]],
+    logger,
+    port: int = 22,
+    dry_run: bool = True,
+):
+    ok_count = 0
+    err_count = 0
+
+    if dry_run:
+        logger("[WARN] Modo simulación activo: no se enviarán comandos a la OLT")
+        for row in rows:
+            sn = row["SN"].replace(":", "")
+            user = row["PPPoE_USER"]
+            pon_destino = row["PON_DESTINO"]
+            logger(f"[INFO] [SIMULACION] Provisionando SN {sn} para el usuario {user} en {pon_destino}...")
+            commands = build_row_commands(row)
+            logger(f"[INFO] [SIMULACION] {len(commands)} comandos generados")
+            ok_count += 1
+        return {"ok": ok_count, "error": err_count, "total": len(rows)}
+
     conn = ConnectHandler(
         device_type="zte_zxros",
         host=ip,
@@ -111,8 +134,6 @@ def run_preprovision_zte(ip: str, username: str, password: str, rows: List[Dict[
         fast_cli=False,
     )
 
-    ok_count = 0
-    err_count = 0
     try:
         conn.send_command_timing("configure terminal")
 
