@@ -8,6 +8,7 @@ import time
 
 from gui import App
 from migration_ui import MigrationBDCOMWindow
+from zte_injection_ui import ZTEInjectionWindow
 from csv_logic import parse_smartolt_csv
 from ssh_client import connect_olt, close_olt
 from config import OLT_MAP
@@ -133,6 +134,7 @@ def enter_config_mode(olt_name, conn, logger):
 def main():
     ui = App()
     migration_window = {"ref": None}
+    zte_injection_window = {"ref": None}
 
     # Inicializar logging antes de cualquier procesamiento
     log_path = init_logging()
@@ -373,8 +375,23 @@ def main():
             migration_window["ref"].lift()
             migration_window["ref"].focus_force()
 
+    def on_open_zte_injection():
+        zte_cfg = OLT_MAP.get("ZTE C600", {})
+        if zte_injection_window["ref"] is None or not zte_injection_window["ref"].winfo_exists():
+            zte_injection_window["ref"] = ZTEInjectionWindow(
+                ui,
+                default_ip=zte_cfg.get("ip", ""),
+                default_user=zte_cfg.get("user", ""),
+                default_password=zte_cfg.get("password", ""),
+                default_port=zte_cfg.get("port", 22),
+            )
+        else:
+            zte_injection_window["ref"].lift()
+            zte_injection_window["ref"].focus_force()
+
     ui.btn_run.configure(command=on_click)
     ui.btn_migration.configure(command=on_open_migration)
+    ui.btn_zte_injection.configure(command=on_open_zte_injection)
     ui.mainloop()
 
 if __name__ == "__main__":
