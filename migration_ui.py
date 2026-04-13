@@ -23,7 +23,7 @@ class MigrationBDCOMWindow(tk.Toplevel):
         self.mikrotik_host = tk.StringVar()
         self.mikrotik_user = tk.StringVar()
         self.mikrotik_pass = tk.StringVar()
-        self.mikrotik_port = tk.StringVar(value="22")
+        self.mikrotik_port = tk.StringVar(value="8728")
 
         self._build()
 
@@ -39,7 +39,7 @@ class MigrationBDCOMWindow(tk.Toplevel):
         tk.Entry(frame_files, textvariable=self.mac_path, width=90).grid(row=1, column=1, padx=6, pady=4)
         tk.Button(frame_files, text="Examinar", command=self._browse_mac).grid(row=1, column=2, padx=6, pady=4)
 
-        frame_mk = tk.LabelFrame(self, text="MikroTik")
+        frame_mk = tk.LabelFrame(self, text="MikroTik (API)")
         frame_mk.pack(fill="x", padx=10, pady=6)
 
         tk.Label(frame_mk, text="Host/IP:").grid(row=0, column=0, sticky="w", padx=6, pady=4)
@@ -101,7 +101,7 @@ class MigrationBDCOMWindow(tk.Toplevel):
             mac_records = parse_bdcom_mac_table(self.mac_path.get(), running_map)
             self._write(f"[OK] MAC Table parseada: {len(mac_records)} registros con puerto/onu")
 
-            self._write("[3/4] Consultando MikroTik (active + secret)...")
+            self._write("[3/4] Consultando MikroTik via API (active + secret)...")
             mac_to_pppoe = query_mikrotik_pppoe_users(
                 host=self.mikrotik_host.get().strip(),
                 username=self.mikrotik_user.get().strip(),

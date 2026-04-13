@@ -2,7 +2,7 @@ import csv
 import re
 from typing import Dict, List, Tuple
 
-import paramiko
+from librouteros import connect as routeros_connect
 
 
 def normalize_mac(raw: str) -> str:
@@ -111,59 +111,38 @@ def parse_bdcom_mac_table(file_path: str, running_map: Dict[Tuple[int, int], Dic
     return records
 
 
-def _parse_key_values(line: str) -> Dict[str, str]:
-    data = {}
-    for k, v in re.findall(r'(\S+)=((?:"[^"]*")|\S+)', line):
-        if v.startswith('"') and v.endswith('"'):
-            v = v[1:-1]
-        data[k] = v
-    return data
-
-
-def _ssh_run_command(client: paramiko.SSHClient, cmd: str) -> str:
-    stdin, stdout, stderr = client.exec_command(cmd)
-    out = stdout.read().decode("utf-8", errors="ignore")
-    err = stderr.read().decode("utf-8", errors="ignore")
-    return (out + "\n" + err).strip()
-
-
-def query_mikrotik_pppoe_users(host: str, username: str, password: str, port: int = 22):
+def query_mikrotik_pppoe_users(host: str, username: str, password: str, port: int = 8728):
     """
-    Retorna mapa {mac_normalizada: pppoe_user} usando active y secret como respaldo.
+    Retorna mapa {mac_normalizada: pppoe_user} usando API de MikroTik.
+    Fuente:
+    - /ppp/active: name + caller-id
+    - /ppp/secret: name + last-caller-id (respaldo)
     """
-    client = paramiko.SSHClient()
-    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    client.connect(hostname=host, port=port, username=username, password=password, timeout=15)
+    api = routeros_connect(
+        host=host,
+        username=username,
+        password=password,
+        port=port,
+        timeout=15,
+    )
 
-    try:
-        active_out = _ssh_run_command(client, "/ppp active print detail without-paging")
-        secret_out = _ssh_run_command(client, "/ppp secret print detail without-paging")
+    mac_to_user = {}
 
-        mac_to_user = {}
+    active_rows = api.path("ppp", "active").select("name", "caller-id")
+    for row in active_rows:
+        user = str(row.get("name", "")).strip()
+        mac = normalize_mac(str(row.get("caller-id", "")))
+        if user and mac:
+            mac_to_user[mac] = user
 
-        for line in active_out.splitlines():
-            line = line.strip()
-            if "name=" not in line:
-                continue
-            row = _parse_key_values(line)
-            user = row.get("name", "").strip()
-            mac = normalize_mac(row.get("caller-id", ""))
-            if user and mac:
-                mac_to_user[mac] = user
+    secret_rows = api.path("ppp", "secret").select("name", "last-caller-id")
+    for row in secret_rows:
+        user = str(row.get("name", "")).strip()
+        mac = normalize_mac(str(row.get("last-caller-id", "")))
+        if user and mac and mac not in mac_to_user:
+            mac_to_user[mac] = user
 
-        for line in secret_out.splitlines():
-            line = line.strip()
-            if "name=" not in line:
-                continue
-            row = _parse_key_values(line)
-            user = row.get("name", "").strip()
-            mac = normalize_mac(row.get("last-caller-id", ""))
-            if user and mac and mac not in mac_to_user:
-                mac_to_user[mac] = user
-
-        return mac_to_user
-    finally:
-        client.close()
+    return mac_to_user
 
 
 def build_migration_rows(mac_records: List[Dict[str, str]], mac_to_pppoe: Dict[str, str]):
