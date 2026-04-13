@@ -7,6 +7,7 @@ import json
 import time
 
 from gui import App
+from migration_ui import MigrationBDCOMWindow
 from csv_logic import parse_smartolt_csv
 from ssh_client import connect_olt, close_olt
 from config import OLT_MAP
@@ -131,6 +132,7 @@ def enter_config_mode(olt_name, conn, logger):
 
 def main():
     ui = App()
+    migration_window = {"ref": None}
 
     # Inicializar logging antes de cualquier procesamiento
     log_path = init_logging()
@@ -364,7 +366,15 @@ def main():
         t.daemon = True
         t.start()
 
+    def on_open_migration():
+        if migration_window["ref"] is None or not migration_window["ref"].winfo_exists():
+            migration_window["ref"] = MigrationBDCOMWindow(ui)
+        else:
+            migration_window["ref"].lift()
+            migration_window["ref"].focus_force()
+
     ui.btn_run.configure(command=on_click)
+    ui.btn_migration.configure(command=on_open_migration)
     ui.mainloop()
 
 if __name__ == "__main__":
