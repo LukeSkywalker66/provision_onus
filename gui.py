@@ -39,6 +39,12 @@ class App(tk.Tk):
         self.btn_migration.pack(side="left", padx=4)
         self.btn_zte_injection = tk.Button(actions, text="Inyeccion ZTE", width=18)
         self.btn_zte_injection.pack(side="left", padx=4)
+        self.btn_huawei_injection = tk.Button(
+            actions,
+            text="Inyeccion Huawei (Pre-Aprovisionamiento)",
+            width=36,
+        )
+        self.btn_huawei_injection.pack(side="left", padx=4)
 
         self.log = scrolledtext.ScrolledText(self, height=24, width=110, state="normal")
         self.log.pack(padx=10, pady=8)

@@ -113,6 +113,30 @@ def get_mode_override_for_model(ont_model: str):
             return mode
     return ""
 
+
+# ============================================================================
+# Configuración para Inyección Huawei (PREPROVISIONAMIENTO)
+# ============================================================================
+
+HUAWEI_INJECTION = {
+    "vlan_id": os.getenv("HUAWEI_VLAN_ID", "700"),
+    "traffic_table_up": os.getenv("HUAWEI_TRAFFIC_TABLE_UP", "6"),
+    "traffic_table_down": os.getenv("HUAWEI_TRAFFIC_TABLE_DOWN", "6"),
+    "line_prof_router": os.getenv("HUAWEI_LINE_PROF_ROUTER", "10"),
+    "srv_prof_router": os.getenv("HUAWEI_SRV_PROF_ROUTER", "10"),
+    "line_prof_bridge": os.getenv("HUAWEI_LINE_PROF_BRIDGE", "20"),
+    "srv_prof_bridge": os.getenv("HUAWEI_SRV_PROF_BRIDGE", "20"),
+}
+
+
+def get_huawei_injection_params():
+    """
+    Retorna diccionario con parámetros de inyección Huawei desde config.
+    Todos los valores son strings para facilitar interpolación en CLI.
+    """
+    return HUAWEI_INJECTION.copy()
+
+
 # Comandos OMCI específicos por OLT y modo
 # IMPORTANTE: Cada OLT tiene configuración única (profile-ids, traffic-tables, etc.)
 OLT_COMMANDS = {

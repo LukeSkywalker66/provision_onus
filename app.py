@@ -9,6 +9,7 @@ import time
 from gui import App
 from migration_ui import MigrationBDCOMWindow
 from zte_injection_ui import ZTEInjectionWindow
+from huawei_injection_ui import HuaweiInjectionWindow
 from csv_logic import parse_smartolt_csv
 from ssh_client import connect_olt, close_olt
 from config import OLT_MAP
@@ -135,6 +136,7 @@ def main():
     ui = App()
     migration_window = {"ref": None}
     zte_injection_window = {"ref": None}
+    huawei_injection_window = {"ref": None}
 
     # Inicializar logging antes de cualquier procesamiento
     log_path = init_logging()
@@ -389,9 +391,31 @@ def main():
             zte_injection_window["ref"].lift()
             zte_injection_window["ref"].focus_force()
 
+    def on_open_huawei_injection():
+        huawei_cfg = OLT_MAP.get("OLTHUAWEI")
+        if not huawei_cfg:
+            for cfg in OLT_MAP.values():
+                if str(cfg.get("fabricante", "")).lower() == "huawei":
+                    huawei_cfg = cfg
+                    break
+        huawei_cfg = huawei_cfg or {}
+
+        if huawei_injection_window["ref"] is None or not huawei_injection_window["ref"].winfo_exists():
+            huawei_injection_window["ref"] = HuaweiInjectionWindow(
+                ui,
+                default_ip=huawei_cfg.get("ip", ""),
+                default_user=huawei_cfg.get("user", ""),
+                default_password=huawei_cfg.get("password", ""),
+                default_port=huawei_cfg.get("port", 22),
+            )
+        else:
+            huawei_injection_window["ref"].lift()
+            huawei_injection_window["ref"].focus_force()
+
     ui.btn_run.configure(command=on_click)
     ui.btn_migration.configure(command=on_open_migration)
     ui.btn_zte_injection.configure(command=on_open_zte_injection)
+    ui.btn_huawei_injection.configure(command=on_open_huawei_injection)
     ui.mainloop()
 
 if __name__ == "__main__":
