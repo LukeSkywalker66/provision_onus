@@ -1,0 +1,3270 @@
+User Access Verification
+
+Username: admin
+Password: 
+Authentication failed!
+
+Username: admin
+Password: 
+Authentication failed!
+
+Username: admin
+Password: 
+
+
+
+
+
+
+
+                 Welcome to BDCOM GP3600-16B GPON OLT
+
+
+
+
+
+OLT_Sarmiento>
+OLT_Sarmiento>enable
+OLT_Sarmiento#terminal length 0
+OLT_Sarmiento#show running-config
+Building configuration...
+
+
+Current configuration:
+!
+!version 10.3.0D build 84772
+service timestamps log date
+service timestamps debug date
+!
+hostname OLT_Sarmiento
+port-protected 1
+!
+!
+!
+!
+!
+!
+spanning-tree mode rstp
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+aaa authentication login default local
+aaa authentication enable default none
+aaa authorization exec default local
+!
+username admin password 0 Mauro2023%
+!
+!
+!
+!
+!
+!
+gpon profile onu-rate-limit ratelimit-default id 1
+ gpon-profile pir 1244160 cir 1244160
+!
+gpon profile onu-tcont tcont-default id 1
+ gpon-profile tcont-type 3 pir 1024000 cir 512
+!
+gpon profile onu-virtual-port virtual-port-default id 1
+ gpon-profile encryption disable
+ gpon-profile upstream queue 8
+ gpon-profile downstream queue 8
+!
+gpon profile onu-tcont-virtual-port-bind tvbind-default id 1
+ gpon-profile virtual-port 1 profile virtual-port-default tcont 1 profile tcont-default
+!
+gpon profile onu-flow-mapping flow-mapping-default id 1
+ gpon-profile entry 1 uni type eth-uni all
+ gpon-profile entry 1 virtual-port 1
+!
+gpon profile onu-flow-mapping flow-mapping-default-hgu id 2
+ gpon-profile entry 1 uni type veip all
+ gpon-profile entry 1 virtual-port 1
+!
+!
+gpon onutype-template onutype-default-hgu
+ gpon-onutype match ctc-onu-type HGU
+ gpon-onutype config tcont-virtual-port-bind-profile tvbind-default
+ gpon-onutype config flow-mapping-profile flow-mapping-default-hgu
+!
+gpon onutype-template onutype-default
+ gpon-onutype config tcont-virtual-port-bind-profile tvbind-default
+ gpon-onutype config flow-mapping-profile flow-mapping-default
+!
+interface Null0
+!
+interface GigaEthernet0/0
+ ip address 192.168.0.1 255.255.255.0
+!
+!!slot 0 1 GP3600-16B mother card
+interface GigaEthernet0/1
+ switchport mode dot1q-tunnel-uplink
+ storm-control broadcast threshold 5
+ storm-control multicast threshold 5
+ storm-control unicast threshold 5
+!
+interface GigaEthernet0/2
+ switchport mode dot1q-tunnel-uplink
+ storm-control broadcast threshold 5
+ storm-control multicast threshold 5
+ storm-control unicast threshold 5
+!
+interface GigaEthernet0/3
+ switchport mode dot1q-tunnel-uplink
+ storm-control broadcast threshold 5
+ storm-control multicast threshold 5
+ storm-control unicast threshold 5
+!
+interface GigaEthernet0/4
+ switchport mode dot1q-tunnel-uplink
+ storm-control broadcast threshold 5
+ storm-control multicast threshold 5
+ storm-control unicast threshold 5
+!
+interface GigaEthernet0/5
+ switchport mode dot1q-tunnel-uplink
+ storm-control broadcast threshold 5
+ storm-control multicast threshold 5
+ storm-control unicast threshold 5
+!
+interface GigaEthernet0/6
+ switchport mode dot1q-tunnel-uplink
+ storm-control broadcast threshold 5
+ storm-control multicast threshold 5
+ storm-control unicast threshold 5
+!
+interface GigaEthernet0/7
+ switchport mode dot1q-tunnel-uplink
+ storm-control broadcast threshold 5
+ storm-control multicast threshold 5
+ storm-control unicast threshold 5
+!
+interface GigaEthernet0/8
+ switchport mode dot1q-tunnel-uplink
+ storm-control broadcast threshold 5
+ storm-control multicast threshold 5
+ storm-control unicast threshold 5
+!
+interface TGigaEthernet0/1
+ switchport mode dot1q-tunnel-uplink
+ storm-control broadcast threshold 5
+ storm-control multicast threshold 5
+ storm-control unicast threshold 5
+!
+interface TGigaEthernet0/2
+ switchport mode dot1q-tunnel-uplink
+ storm-control broadcast threshold 5
+ storm-control multicast threshold 5
+ storm-control unicast threshold 5
+!
+interface TGigaEthernet0/3
+ switchport mode dot1q-tunnel-uplink
+ storm-control broadcast threshold 5
+ storm-control multicast threshold 5
+ storm-control unicast threshold 5
+!
+interface TGigaEthernet0/4
+ switchport mode dot1q-tunnel-uplink
+ storm-control broadcast threshold 5
+ storm-control multicast threshold 5
+ storm-control unicast threshold 5
+!
+interface GPON0/1
+ gpon bind-onutype onutype-default-hgu precedence 127
+ gpon bind-onutype onutype-default precedence 128
+ gpon bind-onu sn HWTC:A3727F9C 1
+ gpon bind-onu sn BDCM:B16FE6EA 2
+ gpon bind-onu sn ZTEG:D6D14291 3
+ gpon bind-onu sn HWTC:02B60292 4
+ gpon bind-onu sn ZTEG:D6D13EE4 5
+ gpon bind-onu sn HWTC:96636AB1 6
+ gpon bind-onu sn ZTEG:D6D13EE0 7
+ gpon bind-onu sn ZTEG:D6D14241 8
+ gpon bind-onu sn ZTEG:D6D13ED2 9
+ gpon bind-onu sn ZTEG:D6D13C94 10
+ gpon bind-onu sn ZTEG:D6D14237 11
+ gpon bind-onu sn HWTC:8A1015A6 12
+ gpon bind-onu sn HWTC:A47CC1B1 13
+ gpon bind-onu sn ZTEG:D6D14268 14
+ gpon bind-onu sn ZTEG:D6D144B7 15
+ gpon bind-onu sn ZTEG:D6D14232 16
+ gpon bind-onu sn ZTEG:D6D13EF2 17
+ gpon bind-onu sn ZTEG:D6D14269 18
+ gpon bind-onu sn ZTEG:D6D14238 19
+ gpon bind-onu sn ZTEG:D6D13F2E 20
+ gpon bind-onu sn ZTEG:D6D13F15 21
+ gpon bind-onu sn ZTEG:D6D13D01 22
+ gpon bind-onu sn ZTEG:D6D1427D 23
+ gpon bind-onu sn HWTC:9665ADB1 24
+ gpon bind-onu sn ZTEG:D6D14278 25
+ gpon bind-onu sn ZTEG:D6D14275 26
+ switchport mode trunk
+ switchport protected 1
+ storm-control broadcast threshold 5
+ storm-control multicast threshold 5
+ storm-control unicast threshold 5
+!
+interface GPON0/1:1
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 256
+ gpon onu tcont 1 alloc-id 256
+!
+interface GPON0/1:2
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 257
+ gpon onu tcont 1 alloc-id 257
+!
+interface GPON0/1:3
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 259
+ gpon onu tcont 1 alloc-id 259
+!
+interface GPON0/1:4
+ gpon onu model-id HG8546M
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 258
+ gpon onu tcont 1 alloc-id 258
+!
+interface GPON0/1:5
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 261
+ gpon onu tcont 1 alloc-id 261
+!
+interface GPON0/1:6
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 260
+ gpon onu tcont 1 alloc-id 260
+!
+interface GPON0/1:7
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 262
+ gpon onu tcont 1 alloc-id 262
+!
+interface GPON0/1:8
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 264
+ gpon onu tcont 1 alloc-id 264
+!
+interface GPON0/1:9
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 265
+ gpon onu tcont 1 alloc-id 265
+!
+interface GPON0/1:10
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 267
+ gpon onu tcont 1 alloc-id 267
+!
+interface GPON0/1:11
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 268
+ gpon onu tcont 1 alloc-id 268
+!
+interface GPON0/1:12
+ gpon onu model-id EG8141A5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 266
+ gpon onu tcont 1 alloc-id 266
+!
+interface GPON0/1:13
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 263
+ gpon onu tcont 1 alloc-id 263
+!
+interface GPON0/1:14
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 269
+ gpon onu tcont 1 alloc-id 269
+!
+interface GPON0/1:15
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 270
+ gpon onu tcont 1 alloc-id 270
+!
+interface GPON0/1:16
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 271
+ gpon onu tcont 1 alloc-id 271
+!
+interface GPON0/1:17
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 272
+ gpon onu tcont 1 alloc-id 272
+!
+interface GPON0/1:18
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 273
+ gpon onu tcont 1 alloc-id 273
+!
+interface GPON0/1:19
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 274
+ gpon onu tcont 1 alloc-id 274
+!
+interface GPON0/1:20
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 275
+ gpon onu tcont 1 alloc-id 275
+!
+interface GPON0/1:21
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 276
+ gpon onu tcont 1 alloc-id 276
+!
+interface GPON0/1:22
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 277
+ gpon onu tcont 1 alloc-id 277
+!
+interface GPON0/1:23
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 278
+ gpon onu tcont 1 alloc-id 278
+!
+interface GPON0/1:24
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 279
+ gpon onu tcont 1 alloc-id 279
+!
+interface GPON0/1:25
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 280
+ gpon onu tcont 1 alloc-id 280
+!
+interface GPON0/1:26
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 281
+ gpon onu tcont 1 alloc-id 281
+!
+interface GPON0/2
+ gpon bind-onutype onutype-default-hgu precedence 127
+ gpon bind-onutype onutype-default precedence 128
+ gpon bind-onu sn ZTEG:D6D142FF 1
+ gpon bind-onu sn HWTC:96658BB1 2
+ gpon bind-onu sn ZTEG:D6D14442 3
+ gpon bind-onu sn ZTEG:D6D14590 4
+ gpon bind-onu sn ZTEG:D6D13EC4 5
+ gpon bind-onu sn ZTEG:D6D153D8 6
+ gpon bind-onu sn HWTC:5ED7519F 7
+ gpon bind-onu sn ZTEG:D6D142C9 8
+ gpon bind-onu sn ZTEG:D6D1425E 9
+ gpon bind-onu sn ZTEG:D6D1429C 10
+ gpon bind-onu sn ZTEG:D6D13ECA 11
+ gpon bind-onu sn ZTEG:D6D1429D 12
+ gpon bind-onu sn ZTEG:D6D1421F 13
+ gpon bind-onu sn ZTEG:D6D13FA7 14
+ gpon bind-onu sn ZTEG:D6D13F04 15
+ gpon bind-onu sn ZTEG:D6D14523 16
+ gpon bind-onu sn ZTEG:D6D1600E 17
+ gpon bind-onu sn ZTEG:D6D14303 18
+ gpon bind-onu sn ZTEG:D6D1428D 19
+ gpon bind-onu sn ZTEG:D6D13F1F 20
+ gpon bind-onu sn ZTEG:D6D13EF0 21
+ gpon bind-onu sn ZTEG:D6D13E62 22
+ gpon bind-onu sn ZTEG:D6D13D41 23
+ gpon bind-onu sn ZTEG:D6D13FA2 24
+ gpon bind-onu sn HWTC:DADFF1B1 25
+ gpon bind-onu sn HWTC:965817B1 26
+ gpon bind-onu sn ZTEG:D6D1437F 27
+ gpon bind-onu sn HWTC:A2C8B79F 28
+ gpon bind-onu sn ZTEG:D6D13F3E 29
+ gpon bind-onu sn ZTEG:D6D13ED8 30
+ gpon bind-onu sn ZTEG:D6D14236 31
+ gpon bind-onu sn ZTEG:D6D13E78 32
+ gpon bind-onu sn ZTEG:D6D1423C 33
+ gpon bind-onu sn ZTEG:D6D142A9 34
+ gpon bind-onu sn ZTEG:D6D13EFF 35
+ gpon bind-onu sn ZTEG:D6D14286 36
+ gpon bind-onu sn ZTEG:D6D13F39 37
+ gpon bind-onu sn HWTC:4581E9B2 38
+ gpon bind-onu sn ZTEG:D6D14244 39
+ switchport mode trunk
+ switchport protected 1
+ storm-control broadcast threshold 5
+ storm-control multicast threshold 5
+ storm-control unicast threshold 5
+!
+interface GPON0/2:1
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 281
+ gpon onu tcont 1 alloc-id 281
+!
+interface GPON0/2:2
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 257
+ gpon onu tcont 1 alloc-id 257
+!
+interface GPON0/2:3
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 258
+ gpon onu tcont 1 alloc-id 258
+!
+interface GPON0/2:4
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 259
+ gpon onu tcont 1 alloc-id 259
+!
+interface GPON0/2:5
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 260
+ gpon onu tcont 1 alloc-id 260
+!
+interface GPON0/2:6
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 261
+ gpon onu tcont 1 alloc-id 261
+!
+interface GPON0/2:7
+ gpon onu model-id EG8141A5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 256
+ gpon onu tcont 1 alloc-id 256
+!
+interface GPON0/2:8
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 262
+ gpon onu tcont 1 alloc-id 262
+!
+interface GPON0/2:9
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 263
+ gpon onu tcont 1 alloc-id 263
+!
+interface GPON0/2:10
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 264
+ gpon onu tcont 1 alloc-id 264
+!
+interface GPON0/2:11
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 265
+ gpon onu tcont 1 alloc-id 265
+!
+interface GPON0/2:12
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 270
+ gpon onu tcont 1 alloc-id 270
+!
+interface GPON0/2:13
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 266
+ gpon onu tcont 1 alloc-id 266
+!
+interface GPON0/2:14
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 267
+ gpon onu tcont 1 alloc-id 267
+!
+interface GPON0/2:15
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 269
+ gpon onu tcont 1 alloc-id 269
+!
+interface GPON0/2:16
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 279
+ gpon onu tcont 1 alloc-id 279
+!
+interface GPON0/2:17
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 271
+ gpon onu tcont 1 alloc-id 271
+!
+interface GPON0/2:18
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 272
+ gpon onu tcont 1 alloc-id 272
+!
+interface GPON0/2:19
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 273
+ gpon onu tcont 1 alloc-id 273
+!
+interface GPON0/2:20
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 274
+ gpon onu tcont 1 alloc-id 274
+!
+interface GPON0/2:21
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 275
+ gpon onu tcont 1 alloc-id 275
+!
+interface GPON0/2:22
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 276
+ gpon onu tcont 1 alloc-id 276
+!
+interface GPON0/2:23
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 277
+ gpon onu tcont 1 alloc-id 277
+!
+interface GPON0/2:24
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 278
+ gpon onu tcont 1 alloc-id 278
+!
+interface GPON0/2:25
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 268
+ gpon onu tcont 1 alloc-id 268
+!
+interface GPON0/2:26
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 280
+ gpon onu tcont 1 alloc-id 280
+!
+interface GPON0/2:27
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 282
+ gpon onu tcont 1 alloc-id 282
+!
+interface GPON0/2:28
+ gpon onu model-id EG8141A5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 283
+ gpon onu tcont 1 alloc-id 283
+!
+interface GPON0/2:29
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 284
+ gpon onu tcont 1 alloc-id 284
+!
+interface GPON0/2:30
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 285
+ gpon onu tcont 1 alloc-id 285
+!
+interface GPON0/2:31
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 286
+ gpon onu tcont 1 alloc-id 286
+!
+interface GPON0/2:32
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 287
+ gpon onu tcont 1 alloc-id 287
+!
+interface GPON0/2:33
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 288
+ gpon onu tcont 1 alloc-id 288
+!
+interface GPON0/2:34
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 289
+ gpon onu tcont 1 alloc-id 289
+!
+interface GPON0/2:35
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 290
+ gpon onu tcont 1 alloc-id 290
+!
+interface GPON0/2:36
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 291
+ gpon onu tcont 1 alloc-id 291
+!
+interface GPON0/2:37
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 292
+ gpon onu tcont 1 alloc-id 292
+!
+interface GPON0/2:38
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 293
+ gpon onu tcont 1 alloc-id 293
+!
+interface GPON0/2:39
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 294
+ gpon onu tcont 1 alloc-id 294
+!
+interface GPON0/3
+ gpon bind-onutype onutype-default-hgu precedence 127
+ gpon bind-onutype onutype-default precedence 128
+ gpon bind-onu sn HWTC:9663F5B1 1
+ gpon bind-onu sn ZTEG:D6D1458D 2
+ gpon bind-onu sn ZTEG:D6D13EDE 3
+ gpon bind-onu sn ZTEG:D6D13F03 4
+ gpon bind-onu sn ZTEG:D6D14325 5
+ gpon bind-onu sn ZTEG:D6D13E80 6
+ gpon bind-onu sn ZTEG:D6D1424D 7
+ gpon bind-onu sn HWTC:A471FBB1 8
+ gpon bind-onu sn ZTEG:D6D15FEF 9
+ gpon bind-onu sn ZTEG:D6D15F31 10
+ gpon bind-onu sn ZTEG:D6D16028 11
+ gpon bind-onu sn ZTEG:D6D13E73 12
+ gpon bind-onu sn ZTEG:D6D14261 13
+ gpon bind-onu sn ZTEG:D6D13EA7 14
+ gpon bind-onu sn ZTEG:D6D13F07 15
+ gpon bind-onu sn ZTEG:D6D14255 16
+ gpon bind-onu sn ZTEG:D6D1423E 17
+ gpon bind-onu sn HWTC:87F359B4 18
+ gpon bind-onu sn ZTEG:D6D1426B 19
+ gpon bind-onu sn ZTEG:D6D142AB 20
+ gpon bind-onu sn ZTEG:D6D1425B 21
+ gpon bind-onu sn ZTEG:D6D142EB 22
+ gpon bind-onu sn ZTEG:D6D14321 23
+ gpon bind-onu sn ZTEG:D6D14245 24
+ gpon bind-onu sn ZTEG:D6D13FD1 25
+ gpon bind-onu sn ZTEG:D6D153C0 26
+ gpon bind-onu sn ZTEG:D6D13E86 27
+ gpon bind-onu sn ZTEG:D6D14248 28
+ gpon bind-onu sn ZTEG:D6D13F31 29
+ switchport mode trunk
+ switchport protected 1
+ storm-control broadcast threshold 5
+ storm-control multicast threshold 5
+ storm-control unicast threshold 5
+!
+interface GPON0/3:1
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 256
+ gpon onu tcont 1 alloc-id 256
+!
+interface GPON0/3:2
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 257
+ gpon onu tcont 1 alloc-id 257
+!
+interface GPON0/3:3
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 258
+ gpon onu tcont 1 alloc-id 258
+!
+interface GPON0/3:4
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 259
+ gpon onu tcont 1 alloc-id 259
+!
+interface GPON0/3:5
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 261
+ gpon onu tcont 1 alloc-id 261
+!
+interface GPON0/3:6
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 262
+ gpon onu tcont 1 alloc-id 262
+!
+interface GPON0/3:7
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 263
+ gpon onu tcont 1 alloc-id 263
+!
+interface GPON0/3:8
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 260
+ gpon onu tcont 1 alloc-id 260
+!
+interface GPON0/3:9
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 264
+ gpon onu tcont 1 alloc-id 264
+!
+interface GPON0/3:10
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 266
+ gpon onu tcont 1 alloc-id 266
+!
+interface GPON0/3:11
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 267
+ gpon onu tcont 1 alloc-id 267
+!
+interface GPON0/3:12
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 268
+ gpon onu tcont 1 alloc-id 268
+!
+interface GPON0/3:13
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 269
+ gpon onu tcont 1 alloc-id 269
+!
+interface GPON0/3:14
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 270
+ gpon onu tcont 1 alloc-id 270
+!
+interface GPON0/3:15
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 274
+ gpon onu tcont 1 alloc-id 274
+!
+interface GPON0/3:16
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 271
+ gpon onu tcont 1 alloc-id 271
+!
+interface GPON0/3:17
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 272
+ gpon onu tcont 1 alloc-id 272
+!
+interface GPON0/3:18
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 265
+ gpon onu tcont 1 alloc-id 265
+!
+interface GPON0/3:19
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 273
+ gpon onu tcont 1 alloc-id 273
+!
+interface GPON0/3:20
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 275
+ gpon onu tcont 1 alloc-id 275
+!
+interface GPON0/3:21
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 276
+ gpon onu tcont 1 alloc-id 276
+!
+interface GPON0/3:22
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 277
+ gpon onu tcont 1 alloc-id 277
+!
+interface GPON0/3:23
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 278
+ gpon onu tcont 1 alloc-id 278
+!
+interface GPON0/3:24
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 279
+ gpon onu tcont 1 alloc-id 279
+!
+interface GPON0/3:25
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 280
+ gpon onu tcont 1 alloc-id 280
+!
+interface GPON0/3:26
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 281
+ gpon onu tcont 1 alloc-id 281
+!
+interface GPON0/3:27
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 282
+ gpon onu tcont 1 alloc-id 282
+!
+interface GPON0/3:28
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 283
+ gpon onu tcont 1 alloc-id 283
+!
+interface GPON0/3:29
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 284
+ gpon onu tcont 1 alloc-id 284
+!
+interface GPON0/4
+ gpon bind-onutype onutype-default-hgu precedence 127
+ gpon bind-onutype onutype-default precedence 128
+ gpon bind-onu sn ZTEG:D6D13E8C 1
+ gpon bind-onu sn HWTC:DADECFB1 2
+ gpon bind-onu sn ZTEG:D6D13EE3 3
+ gpon bind-onu sn ZTEG:D6D14251 4
+ gpon bind-onu sn ZTEG:D6D1600C 5
+ gpon bind-onu sn HWTC:16ECDF9B 6
+ gpon bind-onu sn ZTEG:D6D1E4DC 7
+ gpon bind-onu sn ZTEG:D6D1429A 8
+ gpon bind-onu sn ZTEG:D6D14305 9
+ gpon bind-onu sn ZTEG:D6D13E6C 10
+ gpon bind-onu sn ZTEG:D6D13ECE 11
+ gpon bind-onu sn ZTEG:D6D13F36 12
+ gpon bind-onu sn ZTEG:D6D1421C 13
+ gpon bind-onu sn ZTEG:D6D147C2 14
+ gpon bind-onu sn ZTEG:D6D1421E 15
+ gpon bind-onu sn ZTEG:D6D14283 16
+ gpon bind-onu sn ZTEG:D6D14323 17
+ gpon bind-onu sn ZTEG:D6D140A2 18
+ gpon bind-onu sn ZTEG:D6D142AC 19
+ gpon bind-onu sn HWTC:A47C73B1 20
+ gpon bind-onu sn ZTEG:D6D142EF 21
+ gpon bind-onu sn ZTEG:D6D1429B 22
+ gpon bind-onu sn ZTEG:D6D14208 23
+ gpon bind-onu sn ZTEG:D6D13EEC 24
+ gpon bind-onu sn ZTEG:D6D14311 25
+ gpon bind-onu sn ZTEG:D6D13EEE 26
+ gpon bind-onu sn ZTEG:D6D13E7C 27
+ gpon bind-onu sn HWTC:87F24CB4 28
+ gpon bind-onu sn ZTEG:D6D13F0A 29
+ gpon bind-onu sn ZTEG:D6D13FC7 30
+ gpon bind-onu sn HWTC:6E939B9F 31
+ gpon bind-onu sn ZTEG:D6D13EB9 32
+ gpon bind-onu sn ZTEG:D6D1423F 33
+ gpon bind-onu sn ZTEG:D6D145BA 34
+ gpon bind-onu sn ZTEG:D6D14222 35
+ gpon bind-onu sn ZTEG:D6D13F26 36
+ gpon bind-onu sn ZTEG:D6D13E7D 37
+ gpon bind-onu sn HWTC:A4696BB1 38
+ gpon bind-onu sn ZTEG:D6D13D23 39
+ gpon bind-onu sn ZTEG:D6D13E9B 40
+ gpon bind-onu sn ZTEG:D6D14277 41
+ gpon bind-onu sn ZTEG:D6D15F37 42
+ gpon bind-onu sn ZTEG:D6D13EC3 43
+ switchport mode trunk
+ switchport protected 1
+ storm-control broadcast threshold 5
+ storm-control multicast threshold 5
+ storm-control unicast threshold 5
+!
+interface GPON0/4:1
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 257
+ gpon onu tcont 1 alloc-id 257
+!
+interface GPON0/4:2
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 256
+ gpon onu tcont 1 alloc-id 256
+!
+interface GPON0/4:3
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 258
+ gpon onu tcont 1 alloc-id 258
+!
+interface GPON0/4:4
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 260
+ gpon onu tcont 1 alloc-id 260
+!
+interface GPON0/4:5
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 261
+ gpon onu tcont 1 alloc-id 261
+!
+interface GPON0/4:6
+ gpon onu model-id IC405WSG
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 259
+ gpon onu tcont 1 alloc-id 259
+!
+interface GPON0/4:7
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 262
+ gpon onu tcont 1 alloc-id 262
+!
+interface GPON0/4:8
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 263
+ gpon onu tcont 1 alloc-id 263
+!
+interface GPON0/4:9
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 264
+ gpon onu tcont 1 alloc-id 264
+!
+interface GPON0/4:10
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 266
+ gpon onu tcont 1 alloc-id 266
+!
+interface GPON0/4:11
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 267
+ gpon onu tcont 1 alloc-id 267
+!
+interface GPON0/4:12
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 268
+ gpon onu tcont 1 alloc-id 268
+!
+interface GPON0/4:13
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 269
+ gpon onu tcont 1 alloc-id 269
+!
+interface GPON0/4:14
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 270
+ gpon onu tcont 1 alloc-id 270
+!
+interface GPON0/4:15
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 272
+ gpon onu tcont 1 alloc-id 272
+!
+interface GPON0/4:16
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 273
+ gpon onu tcont 1 alloc-id 273
+!
+interface GPON0/4:17
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 274
+ gpon onu tcont 1 alloc-id 274
+!
+interface GPON0/4:18
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 275
+ gpon onu tcont 1 alloc-id 275
+!
+interface GPON0/4:19
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 276
+ gpon onu tcont 1 alloc-id 276
+!
+interface GPON0/4:20
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 265
+ gpon onu tcont 1 alloc-id 265
+!
+interface GPON0/4:21
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 277
+ gpon onu tcont 1 alloc-id 277
+!
+interface GPON0/4:22
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 278
+ gpon onu tcont 1 alloc-id 278
+!
+interface GPON0/4:23
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 279
+ gpon onu tcont 1 alloc-id 279
+!
+interface GPON0/4:24
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 280
+ gpon onu tcont 1 alloc-id 280
+!
+interface GPON0/4:25
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 281
+ gpon onu tcont 1 alloc-id 281
+!
+interface GPON0/4:26
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 282
+ gpon onu tcont 1 alloc-id 282
+!
+interface GPON0/4:27
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 283
+ gpon onu tcont 1 alloc-id 283
+!
+interface GPON0/4:28
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 271
+ gpon onu tcont 1 alloc-id 271
+!
+interface GPON0/4:29
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 284
+ gpon onu tcont 1 alloc-id 284
+!
+interface GPON0/4:30
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 285
+ gpon onu tcont 1 alloc-id 285
+!
+interface GPON0/4:31
+ gpon onu model-id EG8141A5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 286
+ gpon onu tcont 1 alloc-id 286
+!
+interface GPON0/4:32
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 287
+ gpon onu tcont 1 alloc-id 287
+!
+interface GPON0/4:33
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 288
+ gpon onu tcont 1 alloc-id 288
+!
+interface GPON0/4:34
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 289
+ gpon onu tcont 1 alloc-id 289
+!
+interface GPON0/4:35
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 290
+ gpon onu tcont 1 alloc-id 290
+!
+interface GPON0/4:36
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 291
+ gpon onu tcont 1 alloc-id 291
+!
+interface GPON0/4:37
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 292
+ gpon onu tcont 1 alloc-id 292
+!
+interface GPON0/4:38
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 293
+ gpon onu tcont 1 alloc-id 293
+!
+interface GPON0/4:39
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 294
+ gpon onu tcont 1 alloc-id 294
+!
+interface GPON0/4:40
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 295
+ gpon onu tcont 1 alloc-id 295
+!
+interface GPON0/4:41
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 296
+ gpon onu tcont 1 alloc-id 296
+!
+interface GPON0/4:42
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 297
+ gpon onu tcont 1 alloc-id 297
+!
+interface GPON0/4:43
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 298
+ gpon onu tcont 1 alloc-id 298
+!
+interface GPON0/5
+ gpon bind-onutype onutype-default-hgu precedence 127
+ gpon bind-onutype onutype-default precedence 128
+ gpon bind-onu sn ZTEG:D6D13F1C 1
+ gpon bind-onu sn ZTEG:D6D13E83 2
+ gpon bind-onu sn ZTEG:D6D142D5 3
+ gpon bind-onu sn ZTEG:D6D1429F 4
+ gpon bind-onu sn ZTEG:D6D14225 5
+ gpon bind-onu sn ZTEG:D6D1428F 6
+ gpon bind-onu sn HWTC:87F465B4 7
+ gpon bind-onu sn ZTEG:D6D13D0B 8
+ gpon bind-onu sn ZTEG:D6D1424B 9
+ gpon bind-onu sn HWTC:A46F24B1 10
+ gpon bind-onu sn ZTEG:D6D14723 11
+ gpon bind-onu sn ZTEG:D6D14242 12
+ gpon bind-onu sn ZTEG:D6D13D53 13
+ gpon bind-onu sn ZTEG:D6D13E66 14
+ gpon bind-onu sn ZTEG:D6D13E6F 15
+ gpon bind-onu sn ZTEG:D6D13EB1 16
+ gpon bind-onu sn ZTEG:D6D1421D 17
+ gpon bind-onu sn ZTEG:D6D13D35 18
+ gpon bind-onu sn ZTEG:D6D14252 19
+ gpon bind-onu sn ZTEG:D6D13E8F 20
+ gpon bind-onu sn ZTEG:D6D13F05 21
+ gpon bind-onu sn ZTEG:D6D13D6A 22
+ gpon bind-onu sn ZTEG:D6D143CD 23
+ gpon bind-onu sn ZTEG:D6D13F16 24
+ gpon bind-onu sn ZTEG:D6D145EB 25
+ gpon bind-onu sn ZTEG:D6D13EE5 26
+ gpon bind-onu sn ZTEG:D6D142E5 27
+ gpon bind-onu sn ZTEG:D6D14267 28
+ gpon bind-onu sn ZTEG:D6D1429E 29
+ gpon bind-onu sn ZTEG:D6D13E92 30
+ gpon bind-onu sn ZTEG:D6D13ED3 31
+ gpon bind-onu sn HWTC:A473CFB1 32
+ gpon bind-onu sn HWTC:A3A584B1 33
+ switchport mode trunk
+ switchport protected 1
+ storm-control broadcast threshold 5
+ storm-control multicast threshold 5
+ storm-control unicast threshold 5
+!
+interface GPON0/5:1
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 256
+ gpon onu tcont 1 alloc-id 256
+!
+interface GPON0/5:2
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 257
+ gpon onu tcont 1 alloc-id 257
+!
+interface GPON0/5:3
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 258
+ gpon onu tcont 1 alloc-id 258
+!
+interface GPON0/5:4
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 260
+ gpon onu tcont 1 alloc-id 260
+!
+interface GPON0/5:5
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 262
+ gpon onu tcont 1 alloc-id 262
+!
+interface GPON0/5:6
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 263
+ gpon onu tcont 1 alloc-id 263
+!
+interface GPON0/5:7
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 259
+ gpon onu tcont 1 alloc-id 259
+!
+interface GPON0/5:8
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 264
+ gpon onu tcont 1 alloc-id 264
+!
+interface GPON0/5:9
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 265
+ gpon onu tcont 1 alloc-id 265
+!
+interface GPON0/5:10
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 261
+ gpon onu tcont 1 alloc-id 261
+!
+interface GPON0/5:11
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 266
+ gpon onu tcont 1 alloc-id 266
+!
+interface GPON0/5:12
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 267
+ gpon onu tcont 1 alloc-id 267
+!
+interface GPON0/5:13
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 268
+ gpon onu tcont 1 alloc-id 268
+!
+interface GPON0/5:14
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 269
+ gpon onu tcont 1 alloc-id 269
+!
+interface GPON0/5:15
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 276
+ gpon onu tcont 1 alloc-id 276
+!
+interface GPON0/5:16
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 270
+ gpon onu tcont 1 alloc-id 270
+!
+interface GPON0/5:17
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 271
+ gpon onu tcont 1 alloc-id 271
+!
+interface GPON0/5:18
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 272
+ gpon onu tcont 1 alloc-id 272
+!
+interface GPON0/5:19
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 273
+ gpon onu tcont 1 alloc-id 273
+!
+interface GPON0/5:20
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 274
+ gpon onu tcont 1 alloc-id 274
+!
+interface GPON0/5:21
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 275
+ gpon onu tcont 1 alloc-id 275
+!
+interface GPON0/5:22
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 277
+ gpon onu tcont 1 alloc-id 277
+!
+interface GPON0/5:23
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 278
+ gpon onu tcont 1 alloc-id 278
+!
+interface GPON0/5:24
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 279
+ gpon onu tcont 1 alloc-id 279
+!
+interface GPON0/5:25
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 280
+ gpon onu tcont 1 alloc-id 280
+!
+interface GPON0/5:26
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 281
+ gpon onu tcont 1 alloc-id 281
+!
+interface GPON0/5:27
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 282
+ gpon onu tcont 1 alloc-id 282
+!
+interface GPON0/5:28
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 283
+ gpon onu tcont 1 alloc-id 283
+!
+interface GPON0/5:29
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 284
+ gpon onu tcont 1 alloc-id 284
+!
+interface GPON0/5:30
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 285
+ gpon onu tcont 1 alloc-id 285
+!
+interface GPON0/5:31
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 286
+ gpon onu tcont 1 alloc-id 286
+!
+interface GPON0/5:32
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 287
+ gpon onu tcont 1 alloc-id 287
+!
+interface GPON0/5:33
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 288
+ gpon onu tcont 1 alloc-id 288
+!
+interface GPON0/6
+ gpon bind-onutype onutype-default-hgu precedence 127
+ gpon bind-onutype onutype-default precedence 128
+ gpon bind-onu sn ZTEG:D6D14228 1
+ gpon bind-onu sn ZTEG:D6D13E75 2
+ gpon bind-onu sn ZTEG:D6D13F37 3
+ gpon bind-onu sn ZTEG:D6D13EDF 4
+ gpon bind-onu sn ZTEG:D6D14257 5
+ gpon bind-onu sn ZTEG:D6D13ECD 6
+ gpon bind-onu sn ZTEG:D6D13D89 7
+ gpon bind-onu sn ZTEG:D6D1426F 8
+ gpon bind-onu sn HWTC:9173D0A6 9
+ gpon bind-onu sn ZTEG:D6D14212 10
+ gpon bind-onu sn ZTEG:D6D1427C 11
+ gpon bind-onu sn ZTEG:D6D13E76 12
+ gpon bind-onu sn ZTEG:D6D1601B 13
+ gpon bind-onu sn ZTEG:D6D13F12 14
+ gpon bind-onu sn ZTEG:D6D13F29 15
+ gpon bind-onu sn HWTC:DAD018B1 16
+ gpon bind-onu sn ZTEG:D6D153F2 17
+ gpon bind-onu sn ZTEG:D6D13E88 18
+ gpon bind-onu sn ZTEG:D6D1E3AA 19
+ gpon bind-onu sn ZTEG:D6D13F1B 20
+ gpon bind-onu sn ZTEG:D6D13F0B 21
+ gpon bind-onu sn ZTEG:D6D15FF7 22
+ gpon bind-onu sn ZTEG:D6D13D12 23
+ gpon bind-onu sn HWTC:D43A0B9F 24
+ gpon bind-onu sn HWTC:60D6499F 25
+ gpon bind-onu sn ZTEG:D6D1424A 26
+ gpon bind-onu sn ZTEG:D6D15FD5 27
+ gpon bind-onu sn ZTEG:D6D1425C 28
+ gpon bind-onu sn HWTC:DACC37B1 29
+ gpon bind-onu sn ZTEG:D6D13EC8 30
+ gpon bind-onu sn ZTEG:D6D13F50 31
+ gpon bind-onu sn ZTEG:D6D142B6 32
+ gpon bind-onu sn ZTEG:D6D1421A 33
+ gpon bind-onu sn ZTEG:D6D13EE9 34
+ gpon bind-onu sn ZTEG:D6D142A0 35
+ switchport mode trunk
+ switchport protected 1
+ storm-control broadcast threshold 5
+ storm-control multicast threshold 5
+ storm-control unicast threshold 5
+!
+interface GPON0/6:1
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 256
+ gpon onu tcont 1 alloc-id 256
+!
+interface GPON0/6:2
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 257
+ gpon onu tcont 1 alloc-id 257
+!
+interface GPON0/6:3
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 258
+ gpon onu tcont 1 alloc-id 258
+!
+interface GPON0/6:4
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 259
+ gpon onu tcont 1 alloc-id 259
+!
+interface GPON0/6:5
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 260
+ gpon onu tcont 1 alloc-id 260
+!
+interface GPON0/6:6
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 262
+ gpon onu tcont 1 alloc-id 262
+!
+interface GPON0/6:7
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 263
+ gpon onu tcont 1 alloc-id 263
+!
+interface GPON0/6:8
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 264
+ gpon onu tcont 1 alloc-id 264
+!
+interface GPON0/6:9
+ gpon onu model-id EG8141A5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 261
+ gpon onu tcont 1 alloc-id 261
+!
+interface GPON0/6:10
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 265
+ gpon onu tcont 1 alloc-id 265
+!
+interface GPON0/6:11
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 266
+ gpon onu tcont 1 alloc-id 266
+!
+interface GPON0/6:12
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 267
+ gpon onu tcont 1 alloc-id 267
+!
+interface GPON0/6:13
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 268
+ gpon onu tcont 1 alloc-id 268
+!
+interface GPON0/6:14
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 269
+ gpon onu tcont 1 alloc-id 269
+!
+interface GPON0/6:15
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 270
+ gpon onu tcont 1 alloc-id 270
+!
+interface GPON0/6:16
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 287
+ gpon onu tcont 1 alloc-id 287
+!
+interface GPON0/6:17
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 271
+ gpon onu tcont 1 alloc-id 271
+!
+interface GPON0/6:18
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 272
+ gpon onu tcont 1 alloc-id 272
+!
+interface GPON0/6:19
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 273
+ gpon onu tcont 1 alloc-id 273
+!
+interface GPON0/6:20
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 274
+ gpon onu tcont 1 alloc-id 274
+!
+interface GPON0/6:21
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 275
+ gpon onu tcont 1 alloc-id 275
+!
+interface GPON0/6:22
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 276
+ gpon onu tcont 1 alloc-id 276
+!
+interface GPON0/6:23
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 277
+ gpon onu tcont 1 alloc-id 277
+!
+interface GPON0/6:24
+ gpon onu model-id EG8141A5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 278
+ gpon onu tcont 1 alloc-id 278
+!
+interface GPON0/6:25
+ gpon onu model-id EG8141A5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 279
+ gpon onu tcont 1 alloc-id 279
+!
+interface GPON0/6:26
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 281
+ gpon onu tcont 1 alloc-id 281
+!
+interface GPON0/6:27
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 282
+ gpon onu tcont 1 alloc-id 282
+!
+interface GPON0/6:28
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 283
+ gpon onu tcont 1 alloc-id 283
+!
+interface GPON0/6:29
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 280
+ gpon onu tcont 1 alloc-id 280
+!
+interface GPON0/6:30
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 284
+ gpon onu tcont 1 alloc-id 284
+!
+interface GPON0/6:31
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 285
+ gpon onu tcont 1 alloc-id 285
+!
+interface GPON0/6:32
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 286
+ gpon onu tcont 1 alloc-id 286
+!
+interface GPON0/6:33
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 289
+ gpon onu tcont 1 alloc-id 289
+!
+interface GPON0/6:34
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 288
+ gpon onu tcont 1 alloc-id 288
+!
+interface GPON0/6:35
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 290
+ gpon onu tcont 1 alloc-id 290
+!
+interface GPON0/7
+ gpon bind-onutype onutype-default-hgu precedence 127
+ gpon bind-onutype onutype-default precedence 128
+ gpon bind-onu sn ZTEG:D6D14043 1
+ gpon bind-onu sn ZTEG:D6D14326 2
+ gpon bind-onu sn HWTC:A3A48FB1 3
+ gpon bind-onu sn ZTEG:D6D13ED1 4
+ gpon bind-onu sn HWTC:87F3BAB4 5
+ gpon bind-onu sn ZTEG:D6D14579 6
+ gpon bind-onu sn ZTEG:D6D14250 7
+ gpon bind-onu sn ZTEG:D6D13F55 8
+ gpon bind-onu sn ZTEG:D6D14253 9
+ gpon bind-onu sn HWTC:A4755AB1 10
+ gpon bind-onu sn ZTEG:D6D14235 11
+ gpon bind-onu sn ZTEG:D6D14294 12
+ gpon bind-onu sn ZTEG:D6D13EB4 13
+ gpon bind-onu sn ZTEG:D6D13EFB 14
+ gpon bind-onu sn HWTC:87ED20B4 15
+ gpon bind-onu sn ZTEG:D6D13ED0 16
+ gpon bind-onu sn HWTC:DCB9D2B1 17
+ gpon bind-onu sn HWTC:87F0B4B4 18
+ gpon bind-onu sn ZTEG:D6D13C93 19
+ gpon bind-onu sn ZTEG:D6D13F1E 20
+ gpon bind-onu sn ZTEG:D6D142A1 21
+ gpon bind-onu sn ZTEG:D6D14274 22
+ gpon bind-onu sn ZTEG:D6D13EBA 23
+ gpon bind-onu sn ZTEG:D6D13FDF 24
+ gpon bind-onu sn HWTC:966529B1 25
+ gpon bind-onu sn HWTC:DAD980B1 26
+ gpon bind-onu sn ZTEG:D6D13FF7 27
+ gpon bind-onu sn ZTEG:D6D13E89 28
+ gpon bind-onu sn HWTC:87EF01B4 29
+ gpon bind-onu sn ZTEG:D6D13EB7 30
+ gpon bind-onu sn ZTEG:D6D1430E 31
+ gpon bind-onu sn ZTEG:D6D153C9 32
+ gpon bind-onu sn ZTEG:D6D1426D 33
+ gpon bind-onu sn HWTC:AF6790B1 34
+ gpon bind-onu sn ZTEG:D6D1423D 35
+ gpon bind-onu sn ZTEG:D6D14263 36
+ switchport mode trunk
+ switchport protected 1
+ storm-control broadcast threshold 5
+ storm-control multicast threshold 5
+ storm-control unicast threshold 5
+!
+interface GPON0/7:1
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 257
+ gpon onu tcont 1 alloc-id 257
+!
+interface GPON0/7:2
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 259
+ gpon onu tcont 1 alloc-id 259
+!
+interface GPON0/7:3
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 256
+ gpon onu tcont 1 alloc-id 256
+!
+interface GPON0/7:4
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 260
+ gpon onu tcont 1 alloc-id 260
+!
+interface GPON0/7:5
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 258
+ gpon onu tcont 1 alloc-id 258
+!
+interface GPON0/7:6
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 262
+ gpon onu tcont 1 alloc-id 262
+!
+interface GPON0/7:7
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 264
+ gpon onu tcont 1 alloc-id 264
+!
+interface GPON0/7:8
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 265
+ gpon onu tcont 1 alloc-id 265
+!
+interface GPON0/7:9
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 268
+ gpon onu tcont 1 alloc-id 268
+!
+interface GPON0/7:10
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 261
+ gpon onu tcont 1 alloc-id 261
+!
+interface GPON0/7:11
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 269
+ gpon onu tcont 1 alloc-id 269
+!
+interface GPON0/7:12
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 270
+ gpon onu tcont 1 alloc-id 270
+!
+interface GPON0/7:13
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 271
+ gpon onu tcont 1 alloc-id 271
+!
+interface GPON0/7:14
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 272
+ gpon onu tcont 1 alloc-id 272
+!
+interface GPON0/7:15
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 263
+ gpon onu tcont 1 alloc-id 263
+!
+interface GPON0/7:16
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 277
+ gpon onu tcont 1 alloc-id 277
+!
+interface GPON0/7:17
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 266
+ gpon onu tcont 1 alloc-id 266
+!
+interface GPON0/7:18
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 267
+ gpon onu tcont 1 alloc-id 267
+!
+interface GPON0/7:19
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 273
+ gpon onu tcont 1 alloc-id 273
+!
+interface GPON0/7:20
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 274
+ gpon onu tcont 1 alloc-id 274
+!
+interface GPON0/7:21
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 275
+ gpon onu tcont 1 alloc-id 275
+!
+interface GPON0/7:22
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 276
+ gpon onu tcont 1 alloc-id 276
+!
+interface GPON0/7:23
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 278
+ gpon onu tcont 1 alloc-id 278
+!
+interface GPON0/7:24
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 281
+ gpon onu tcont 1 alloc-id 281
+!
+interface GPON0/7:25
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 279
+ gpon onu tcont 1 alloc-id 279
+!
+interface GPON0/7:26
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 280
+ gpon onu tcont 1 alloc-id 280
+!
+interface GPON0/7:27
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 283
+ gpon onu tcont 1 alloc-id 283
+!
+interface GPON0/7:28
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 284
+ gpon onu tcont 1 alloc-id 284
+!
+interface GPON0/7:29
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 282
+ gpon onu tcont 1 alloc-id 282
+!
+interface GPON0/7:30
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 285
+ gpon onu tcont 1 alloc-id 285
+!
+interface GPON0/7:31
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 286
+ gpon onu tcont 1 alloc-id 286
+!
+interface GPON0/7:32
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 287
+ gpon onu tcont 1 alloc-id 287
+!
+interface GPON0/7:33
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 288
+ gpon onu tcont 1 alloc-id 288
+!
+interface GPON0/7:34
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 290
+ gpon onu tcont 1 alloc-id 290
+!
+interface GPON0/7:35
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 289
+ gpon onu tcont 1 alloc-id 289
+!
+interface GPON0/7:36
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 291
+ gpon onu tcont 1 alloc-id 291
+!
+interface GPON0/8
+ gpon bind-onutype onutype-default-hgu precedence 127
+ gpon bind-onutype onutype-default precedence 128
+ gpon bind-onu sn ZTEG:D6D13F69 1
+ gpon bind-onu sn ZTEG:D6D13F3F 2
+ gpon bind-onu sn ZTEG:D6D13CA6 3
+ gpon bind-onu sn ZTEG:D6D142DF 4
+ gpon bind-onu sn HWTC:87F289B4 5
+ gpon bind-onu sn ZTEG:D6D1400A 6
+ gpon bind-onu sn ZTEG:D6D13E5B 7
+ gpon bind-onu sn ZTEG:D6D14091 8
+ gpon bind-onu sn ZTEG:D6D13F18 9
+ gpon bind-onu sn ZTEG:D6D13DC3 10
+ gpon bind-onu sn ZTEG:D6D14229 11
+ gpon bind-onu sn ZTEG:D6D13EF8 12
+ gpon bind-onu sn ZTEG:D6D13F40 13
+ gpon bind-onu sn ZTEG:D6D15FC6 14
+ gpon bind-onu sn ZTEG:D6D13ED4 15
+ gpon bind-onu sn ZTEG:D6D13E97 16
+ gpon bind-onu sn ZTEG:D6D14288 17
+ gpon bind-onu sn ZTEG:D6D14231 18
+ gpon bind-onu sn ZTEG:D6D142E1 19
+ gpon bind-onu sn ZTEG:D6D13DE4 20
+ gpon bind-onu sn ZTEG:D6D13EFC 21
+ gpon bind-onu sn ZTEG:D6D14309 22
+ gpon bind-onu sn ZTEG:D6D16017 23
+ gpon bind-onu sn ZTEG:D6D142AF 24
+ gpon bind-onu sn ZTEG:D6D16009 25
+ gpon bind-onu sn ZTEG:D6D13ED5 26
+ gpon bind-onu sn HWTC:A470EDB1 27
+ gpon bind-onu sn ZTEG:D2EEA022 28
+ gpon bind-onu sn ZTEG:D6D1426A 29
+ gpon bind-onu sn ZTEG:D6D153D6 30
+ switchport mode trunk
+ switchport protected 1
+ storm-control broadcast threshold 5
+ storm-control multicast threshold 5
+ storm-control unicast threshold 5
+!
+interface GPON0/8:1
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 256
+ gpon onu tcont 1 alloc-id 256
+!
+interface GPON0/8:2
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 258
+ gpon onu tcont 1 alloc-id 258
+!
+interface GPON0/8:3
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 259
+ gpon onu tcont 1 alloc-id 259
+!
+interface GPON0/8:4
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 260
+ gpon onu tcont 1 alloc-id 260
+!
+interface GPON0/8:5
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 257
+ gpon onu tcont 1 alloc-id 257
+!
+interface GPON0/8:6
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 261
+ gpon onu tcont 1 alloc-id 261
+!
+interface GPON0/8:7
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 262
+ gpon onu tcont 1 alloc-id 262
+!
+interface GPON0/8:8
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 263
+ gpon onu tcont 1 alloc-id 263
+!
+interface GPON0/8:9
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 277
+ gpon onu tcont 1 alloc-id 277
+!
+interface GPON0/8:10
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 264
+ gpon onu tcont 1 alloc-id 264
+!
+interface GPON0/8:11
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 269
+ gpon onu tcont 1 alloc-id 269
+!
+interface GPON0/8:12
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 265
+ gpon onu tcont 1 alloc-id 265
+!
+interface GPON0/8:13
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 266
+ gpon onu tcont 1 alloc-id 266
+!
+interface GPON0/8:14
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 267
+ gpon onu tcont 1 alloc-id 267
+!
+interface GPON0/8:15
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 268
+ gpon onu tcont 1 alloc-id 268
+!
+interface GPON0/8:16
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 270
+ gpon onu tcont 1 alloc-id 270
+!
+interface GPON0/8:17
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 271
+ gpon onu tcont 1 alloc-id 271
+!
+interface GPON0/8:18
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 272
+ gpon onu tcont 1 alloc-id 272
+!
+interface GPON0/8:19
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 273
+ gpon onu tcont 1 alloc-id 273
+!
+interface GPON0/8:20
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 274
+ gpon onu tcont 1 alloc-id 274
+!
+interface GPON0/8:21
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 275
+ gpon onu tcont 1 alloc-id 275
+!
+interface GPON0/8:22
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 276
+ gpon onu tcont 1 alloc-id 276
+!
+interface GPON0/8:23
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 278
+ gpon onu tcont 1 alloc-id 278
+!
+interface GPON0/8:24
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 282
+ gpon onu tcont 1 alloc-id 282
+!
+interface GPON0/8:25
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 280
+ gpon onu tcont 1 alloc-id 280
+!
+interface GPON0/8:26
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 281
+ gpon onu tcont 1 alloc-id 281
+!
+interface GPON0/8:27
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 279
+ gpon onu tcont 1 alloc-id 279
+!
+interface GPON0/8:28
+ gpon onu model-id F6600PV9.0.05
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 283
+ gpon onu tcont 1 alloc-id 283
+!
+interface GPON0/8:29
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 284
+ gpon onu tcont 1 alloc-id 284
+!
+interface GPON0/8:30
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 285
+ gpon onu tcont 1 alloc-id 285
+!
+interface GPON0/9
+ gpon bind-onutype onutype-default-hgu precedence 127
+ gpon bind-onutype onutype-default precedence 128
+ gpon bind-onu sn HWTC:9664B2B1 1
+ gpon bind-onu sn ZTEG:D6D153D1 2
+ gpon bind-onu sn ZTEG:D6D13F14 3
+ gpon bind-onu sn HWTC:A321C69C 4
+ gpon bind-onu sn HWTC:DAD29CB1 5
+ gpon bind-onu sn ZTEG:D6D1405D 6
+ gpon bind-onu sn HWTC:AF61E3B1 7
+ gpon bind-onu sn ZTEG:D6D153BD 8
+ gpon bind-onu sn ZTEG:D6D13E70 9
+ gpon bind-onu sn ZTEG:D6D1458E 10
+ gpon bind-onu sn ZTEG:D6D13E85 11
+ gpon bind-onu sn HWTC:AF79CCB1 12
+ gpon bind-onu sn HWTC:87ECC0B4 13
+ gpon bind-onu sn ZTEG:D6D13EF5 14
+ gpon bind-onu sn HWTC:A47A12B1 15
+ gpon bind-onu sn HWTC:DCB3EBB1 16
+ gpon bind-onu sn ZTEG:D6D13EA8 17
+ gpon bind-onu sn ZTEG:D6D16001 18
+ gpon bind-onu sn ZTEG:D6D13EDD 19
+ gpon bind-onu sn ZTEG:D6D13CF7 20
+ gpon bind-onu sn ZTEG:D6D15FB6 21
+ gpon bind-onu sn ZTEG:D6D14224 22
+ gpon bind-onu sn ZTEG:D6D153B9 23
+ gpon bind-onu sn HWTC:87ECEDB4 24
+ gpon bind-onu sn ZTEG:D6D13F19 25
+ gpon bind-onu sn ZTEG:D6D13EE6 26
+ gpon bind-onu sn HWTC:A3A4A0B1 27
+ gpon bind-onu sn HWTC:AF6DA8B1 28
+ gpon bind-onu sn ZTEG:D6D13E4A 29
+ gpon bind-onu sn ZTEG:D6D14226 30
+ gpon bind-onu sn HWTC:965971B1 31
+ gpon bind-onu sn ZTEG:D6D153CD 32
+ gpon bind-onu sn ZTEG:D6D13CA4 33
+ gpon bind-onu sn ZTEG:D6D145CD 34
+ gpon bind-onu sn HWTC:AF6763B1 35
+ switchport mode trunk
+ switchport protected 1
+ storm-control broadcast threshold 5
+ storm-control multicast threshold 5
+ storm-control unicast threshold 5
+!
+interface GPON0/9:1
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 256
+ gpon onu tcont 1 alloc-id 256
+!
+interface GPON0/9:2
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 259
+ gpon onu tcont 1 alloc-id 259
+!
+interface GPON0/9:3
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 261
+ gpon onu tcont 1 alloc-id 261
+!
+interface GPON0/9:4
+ gpon onu model-id EG8141A5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 257
+ gpon onu tcont 1 alloc-id 257
+!
+interface GPON0/9:5
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 258
+ gpon onu tcont 1 alloc-id 258
+!
+interface GPON0/9:6
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 264
+ gpon onu tcont 1 alloc-id 264
+!
+interface GPON0/9:7
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 260
+ gpon onu tcont 1 alloc-id 260
+!
+interface GPON0/9:8
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 266
+ gpon onu tcont 1 alloc-id 266
+!
+interface GPON0/9:9
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 267
+ gpon onu tcont 1 alloc-id 267
+!
+interface GPON0/9:10
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 268
+ gpon onu tcont 1 alloc-id 268
+!
+interface GPON0/9:11
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 269
+ gpon onu tcont 1 alloc-id 269
+!
+interface GPON0/9:12
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 262
+ gpon onu tcont 1 alloc-id 262
+!
+interface GPON0/9:13
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 263
+ gpon onu tcont 1 alloc-id 263
+!
+interface GPON0/9:14
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 270
+ gpon onu tcont 1 alloc-id 270
+!
+interface GPON0/9:15
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 265
+ gpon onu tcont 1 alloc-id 265
+!
+interface GPON0/9:16
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 276
+ gpon onu tcont 1 alloc-id 276
+!
+interface GPON0/9:17
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 271
+ gpon onu tcont 1 alloc-id 271
+!
+interface GPON0/9:18
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 272
+ gpon onu tcont 1 alloc-id 272
+!
+interface GPON0/9:19
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 273
+ gpon onu tcont 1 alloc-id 273
+!
+interface GPON0/9:20
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 274
+ gpon onu tcont 1 alloc-id 274
+!
+interface GPON0/9:21
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 275
+ gpon onu tcont 1 alloc-id 275
+!
+interface GPON0/9:22
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 288
+ gpon onu tcont 1 alloc-id 288
+!
+interface GPON0/9:23
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 278
+ gpon onu tcont 1 alloc-id 278
+!
+interface GPON0/9:24
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 277
+ gpon onu tcont 1 alloc-id 277
+!
+interface GPON0/9:25
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 283
+ gpon onu tcont 1 alloc-id 283
+!
+interface GPON0/9:26
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 281
+ gpon onu tcont 1 alloc-id 281
+!
+interface GPON0/9:27
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 279
+ gpon onu tcont 1 alloc-id 279
+!
+interface GPON0/9:28
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 280
+ gpon onu tcont 1 alloc-id 280
+!
+interface GPON0/9:29
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 284
+ gpon onu tcont 1 alloc-id 284
+!
+interface GPON0/9:30
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 285
+ gpon onu tcont 1 alloc-id 285
+!
+interface GPON0/9:31
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 282
+ gpon onu tcont 1 alloc-id 282
+!
+interface GPON0/9:32
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 286
+ gpon onu tcont 1 alloc-id 286
+!
+interface GPON0/9:33
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 287
+ gpon onu tcont 1 alloc-id 287
+!
+interface GPON0/9:34
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 289
+ gpon onu tcont 1 alloc-id 289
+!
+interface GPON0/9:35
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 290
+ gpon onu tcont 1 alloc-id 290
+!
+interface GPON0/10
+ gpon bind-onutype onutype-default-hgu precedence 127
+ gpon bind-onutype onutype-default precedence 128
+ gpon bind-onu sn ZTEG:D6D13F10 1
+ gpon bind-onu sn ZTEG:D6D13E14 2
+ gpon bind-onu sn ZTEG:D6D13E72 3
+ gpon bind-onu sn HWTC:459785B2 4
+ switchport mode trunk
+ switchport protected 1
+ storm-control broadcast threshold 5
+ storm-control multicast threshold 5
+ storm-control unicast threshold 5
+!
+interface GPON0/10:1
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 257
+ gpon onu tcont 1 alloc-id 257
+!
+interface GPON0/10:2
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 258
+ gpon onu tcont 1 alloc-id 258
+!
+interface GPON0/10:3
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 259
+ gpon onu tcont 1 alloc-id 259
+!
+interface GPON0/10:4
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 256
+ gpon onu tcont 1 alloc-id 256
+!
+interface GPON0/11
+ gpon bind-onutype onutype-default-hgu precedence 127
+ gpon bind-onutype onutype-default precedence 128
+ switchport mode trunk
+ switchport protected 1
+ storm-control broadcast threshold 5
+ storm-control multicast threshold 5
+ storm-control unicast threshold 5
+!
+interface GPON0/12
+ gpon bind-onutype onutype-default-hgu precedence 127
+ gpon bind-onutype onutype-default precedence 128
+ gpon bind-onu sn ZTEG:D6D153D5 1
+ gpon bind-onu sn HWTC:A3A6AAB1 2
+ gpon bind-onu sn ZTEG:D6D15FA6 3
+ gpon bind-onu sn ZTEG:D6D1E305 4
+ gpon bind-onu sn ZTEG:D6D1505E 5
+ gpon bind-onu sn ZTEG:D6D1E31D 6
+ gpon bind-onu sn ZTEG:D6D1E3F7 7
+ gpon bind-onu sn ZTEG:D6D1E3F5 8
+ gpon bind-onu sn ZTEG:D6D13D04 9
+ gpon bind-onu sn ZTEG:D6D14013 10
+ gpon bind-onu sn ZTEG:D6D153BB 11
+ gpon bind-onu sn ZTEG:D6D13E5D 12
+ gpon bind-onu sn HWTC:87E7FCB4 13
+ gpon bind-onu sn ZTEG:D6D13ECC 14
+ gpon bind-onu sn ZTEG:D6D13CB4 15
+ gpon bind-onu sn ZTEG:D6D13CA9 16
+ gpon bind-onu sn ZTEG:D6D13C97 17
+ gpon bind-onu sn ZTEG:D6D13CC5 18
+ gpon bind-onu sn ZTEG:D6D153C2 19
+ gpon bind-onu sn ZTEG:D6D13CA5 20
+ gpon bind-onu sn ZTEG:D6D13CD4 21
+ gpon bind-onu sn ZTEG:D6D13DA7 22
+ gpon bind-onu sn ZTEG:D6D13CA3 23
+ gpon bind-onu sn ZTEG:D6D13DC7 24
+ gpon bind-onu sn HWTC:87F2C1B4 25
+ gpon bind-onu sn ZTEG:D6D13EAE 26
+ gpon bind-onu sn ZTEG:D6D13E57 27
+ gpon bind-onu sn ZTEG:D6D153E9 28
+ gpon bind-onu sn ZTEG:D6D13F57 29
+ gpon bind-onu sn ZTEG:D6D13EDA 30
+ gpon bind-onu sn ZTEG:D6D153CC 31
+ gpon bind-onu sn ZTEG:D2EE9F0A 32
+ gpon bind-onu sn ZTEG:D6D153DD 33
+ gpon bind-onu sn ZTEG:D6D14A11 34
+ gpon bind-onu sn ZTEG:D6D1E323 35
+ gpon bind-onu sn ZTEG:D6D13CA8 36
+ gpon bind-onu sn ZTEG:D6D13CF5 37
+ gpon bind-onu sn ZTEG:D6D1601F 38
+ gpon bind-onu sn ZTEG:D6D13CDB 39
+ gpon bind-onu sn ZTEG:D6D13CDF 40
+ gpon bind-onu sn ZTEG:D6D13EB5 41
+ gpon bind-onu sn ZTEG:D6D13EA1 42
+ gpon bind-onu sn HWTC:DCBCF8B1 43
+ gpon bind-onu sn ZTEG:D6D14040 44
+ gpon bind-onu sn ZTEG:D6D1E304 45
+ gpon bind-onu sn ZTEG:D6D1E3EE 46
+ gpon bind-onu sn ZTEG:D6D13E2D 47
+ gpon bind-onu sn ZTEG:D6D13C8C 48
+ gpon bind-onu sn ZTEG:D6D13E13 49
+ gpon bind-onu sn HWTC:87EB02B4 50
+ gpon bind-onu sn ZTEG:D6D153F4 51
+ gpon bind-onu sn ZTEG:D6D13CE8 52
+ gpon bind-onu sn HWTC:26A0DF1E 53
+ switchport mode trunk
+ switchport protected 1
+ storm-control broadcast threshold 5
+ storm-control multicast threshold 5
+ storm-control unicast threshold 5
+!
+interface GPON0/12:1
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 257
+ gpon onu tcont 1 alloc-id 257
+!
+interface GPON0/12:2
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 256
+ gpon onu tcont 1 alloc-id 256
+!
+interface GPON0/12:3
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 258
+ gpon onu tcont 1 alloc-id 258
+!
+interface GPON0/12:4
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 259
+ gpon onu tcont 1 alloc-id 259
+!
+interface GPON0/12:5
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 260
+ gpon onu tcont 1 alloc-id 260
+!
+interface GPON0/12:6
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 261
+ gpon onu tcont 1 alloc-id 261
+!
+interface GPON0/12:7
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 263
+ gpon onu tcont 1 alloc-id 263
+!
+interface GPON0/12:8
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 264
+ gpon onu tcont 1 alloc-id 264
+!
+interface GPON0/12:9
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 265
+ gpon onu tcont 1 alloc-id 265
+!
+interface GPON0/12:10
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 266
+ gpon onu tcont 1 alloc-id 266
+!
+interface GPON0/12:11
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 267
+ gpon onu tcont 1 alloc-id 267
+!
+interface GPON0/12:12
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 268
+ gpon onu tcont 1 alloc-id 268
+!
+interface GPON0/12:13
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 262
+ gpon onu tcont 1 alloc-id 262
+!
+interface GPON0/12:14
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 270
+ gpon onu tcont 1 alloc-id 270
+!
+interface GPON0/12:15
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 271
+ gpon onu tcont 1 alloc-id 271
+!
+interface GPON0/12:16
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 272
+ gpon onu tcont 1 alloc-id 272
+!
+interface GPON0/12:17
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 281
+ gpon onu tcont 1 alloc-id 281
+!
+interface GPON0/12:18
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 280
+ gpon onu tcont 1 alloc-id 280
+!
+interface GPON0/12:19
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 273
+ gpon onu tcont 1 alloc-id 273
+!
+interface GPON0/12:20
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 278
+ gpon onu tcont 1 alloc-id 278
+!
+interface GPON0/12:21
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 274
+ gpon onu tcont 1 alloc-id 274
+!
+interface GPON0/12:22
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 275
+ gpon onu tcont 1 alloc-id 275
+!
+interface GPON0/12:23
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 276
+ gpon onu tcont 1 alloc-id 276
+!
+interface GPON0/12:24
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 277
+ gpon onu tcont 1 alloc-id 277
+!
+interface GPON0/12:25
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 269
+ gpon onu tcont 1 alloc-id 269
+!
+interface GPON0/12:26
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 279
+ gpon onu tcont 1 alloc-id 279
+!
+interface GPON0/12:27
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 282
+ gpon onu tcont 1 alloc-id 282
+!
+interface GPON0/12:28
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 283
+ gpon onu tcont 1 alloc-id 283
+!
+interface GPON0/12:29
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 286
+ gpon onu tcont 1 alloc-id 286
+!
+interface GPON0/12:30
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 284
+ gpon onu tcont 1 alloc-id 284
+!
+interface GPON0/12:31
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 285
+ gpon onu tcont 1 alloc-id 285
+!
+interface GPON0/12:32
+ gpon onu model-id F6600PV9.0.05
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 288
+ gpon onu tcont 1 alloc-id 288
+!
+interface GPON0/12:33
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 287
+ gpon onu tcont 1 alloc-id 287
+!
+interface GPON0/12:34
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 289
+ gpon onu tcont 1 alloc-id 289
+!
+interface GPON0/12:35
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 290
+ gpon onu tcont 1 alloc-id 290
+!
+interface GPON0/12:36
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 298
+ gpon onu tcont 1 alloc-id 298
+!
+interface GPON0/12:37
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 291
+ gpon onu tcont 1 alloc-id 291
+!
+interface GPON0/12:38
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 292
+ gpon onu tcont 1 alloc-id 292
+!
+interface GPON0/12:39
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 293
+ gpon onu tcont 1 alloc-id 293
+!
+interface GPON0/12:40
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 294
+ gpon onu tcont 1 alloc-id 294
+!
+interface GPON0/12:41
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 295
+ gpon onu tcont 1 alloc-id 295
+!
+interface GPON0/12:42
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 296
+ gpon onu tcont 1 alloc-id 296
+!
+interface GPON0/12:43
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 297
+ gpon onu tcont 1 alloc-id 297
+!
+interface GPON0/12:44
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 299
+ gpon onu tcont 1 alloc-id 299
+!
+interface GPON0/12:45
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 300
+ gpon onu tcont 1 alloc-id 300
+!
+interface GPON0/12:46
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 301
+ gpon onu tcont 1 alloc-id 301
+!
+interface GPON0/12:47
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 303
+ gpon onu tcont 1 alloc-id 303
+!
+interface GPON0/12:48
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 304
+ gpon onu tcont 1 alloc-id 304
+!
+interface GPON0/12:49
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 307
+ gpon onu tcont 1 alloc-id 307
+!
+interface GPON0/12:50
+ gpon onu model-id EG8021V5
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 302
+ gpon onu tcont 1 alloc-id 302
+!
+interface GPON0/12:51
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 305
+ gpon onu tcont 1 alloc-id 305
+!
+interface GPON0/12:52
+ gpon onu model-id F670LV9.0
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default
+ gpon onu virtual-port 1 gem-port 306
+ gpon onu tcont 1 alloc-id 306
+!
+interface GPON0/12:53
+ gpon onu model-id IC405WSG
+ gpon onu tcont-virtual-port-bind-profile tvbind-default
+ gpon onu flow-mapping-profile flow-mapping-default-hgu
+ gpon onu virtual-port 1 gem-port 308
+ gpon onu tcont 1 alloc-id 308
+!
+interface GPON0/13
+ gpon bind-onutype onutype-default-hgu precedence 127
+ gpon bind-onutype onutype-default precedence 128
+ switchport mode trunk
+ switchport protected 1
+ storm-control broadcast threshold 5
+ storm-control multicast threshold 5
+ storm-control unicast threshold 5
+!
+interface GPON0/14
+ gpon bind-onutype onutype-default-hgu precedence 127
+ gpon bind-onutype onutype-default precedence 128
+ switchport mode trunk
+ switchport protected 1
+ storm-control broadcast threshold 5
+ storm-control multicast threshold 5
+ storm-control unicast threshold 5
+!
+interface GPON0/15
+ gpon bind-onutype onutype-default-hgu precedence 127
+ gpon bind-onutype onutype-default precedence 128
+ switchport mode trunk
+ switchport protected 1
+ storm-control broadcast threshold 5
+ storm-control multicast threshold 5
+ storm-control unicast threshold 5
+!
+interface GPON0/16
+ gpon bind-onutype onutype-default-hgu precedence 127
+ gpon bind-onutype onutype-default precedence 128
+ switchport mode trunk
+ switchport protected 1
+ storm-control broadcast threshold 5
+ storm-control multicast threshold 5
+ storm-control unicast threshold 5
+!
+!!slot end
+!
+interface VLAN700
+ no ip address
+ no ip directed-broadcast
+!
+!
+!
+vlan 1,700
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+ip exf
+!
+ipv6 exf
+!
+ip telnet attack-defense
+!
+ip http server
+!
+!
+!
+!
+!
+!
+!Pending configurations for absent linecards:
+!
+!No configurations pending global
+OLT_Sarmiento#

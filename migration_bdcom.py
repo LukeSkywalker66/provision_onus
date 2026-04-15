@@ -4,6 +4,8 @@ from typing import Dict, List, Tuple
 
 from librouteros import connect as routeros_connect
 
+from config import get_mode_override_for_model
+
 
 def normalize_mac(raw: str) -> str:
     cleaned = re.sub(r"[^0-9A-Fa-f]", "", raw or "").lower()
@@ -28,7 +30,7 @@ def parse_bdcom_running_config(file_path: str) -> Dict[Tuple[int, int], Dict[str
     re_int_logical = re.compile(r"^\s*interface\s+GPON0/(\d+):(\d+)\s*$", re.IGNORECASE)
     re_bind = re.compile(r"\bgpon\s+bind-onu\s+sn\s+(\S+)\s+(\d+)\b", re.IGNORECASE)
     re_model = re.compile(r"\bgpon\s+onu\s+model-id\s+(\S+)\b", re.IGNORECASE)
-    re_flow_profile = re.compile(r"\bgpon\s+onu\s+flow-mapping-profile\s+(\S+)\b", re.IGNORECASE)
+    re_flow_profile = re.compile(r"^\s*gpon\s+onu\s+flow-mapping-profile\b", re.IGNORECASE)
 
     for line in lines:
         m_physical = re_int_physical.match(line)
@@ -61,19 +63,33 @@ def parse_bdcom_running_config(file_path: str) -> Dict[Tuple[int, int], Dict[str
 
         m_model = re_model.search(line)
         if m_model and current_pon_port is not None and current_logical is not None:
+            model_id = m_model.group(1).strip()
             key = (current_pon_port, current_logical)
             if key not in data:
-                data[key] = {"sn": "", "ont_model": m_model.group(1).strip(), "ont_mode": ""}
+                data[key] = {"sn": "", "ont_model": model_id, "ont_mode": ""}
             else:
-                data[key]["ont_model"] = m_model.group(1).strip()
+                data[key]["ont_model"] = model_id
+
+            # Regla externa desde .env para casos multimarca (sin hardcode en código).
+            override_mode = get_mode_override_for_model(model_id)
+            if override_mode:
+                data[key]["ont_mode"] = override_mode
 
         m_flow = re_flow_profile.search(line)
         if m_flow and current_pon_port is not None and current_logical is not None:
-            profile_name = m_flow.group(1).strip().lower()
+            line_lower = line.strip().lower()
             key = (current_pon_port, current_logical)
             if key not in data:
                 data[key] = {"sn": "", "ont_model": "", "ont_mode": ""}
-            data[key]["ont_mode"] = "ROUTER" if "-hgu" in profile_name else "BRIDGE"
+
+            current_model = data[key].get("ont_model", "")
+            override_mode = get_mode_override_for_model(current_model)
+            if override_mode:
+                data[key]["ont_mode"] = override_mode
+            else:
+                data[key]["ont_mode"] = (
+                    "ROUTER" if "flow-mapping-default-hgu" in line_lower else "BRIDGE"
+                )
 
     return data
 

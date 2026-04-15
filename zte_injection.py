@@ -122,6 +122,8 @@ def run_preprovision_zte(
             logger(f"[INFO] [SIMULACION] Provisionando SN {sn} para el usuario {user} en {pon_destino}...")
             commands = build_row_commands(row)
             logger(f"[INFO] [SIMULACION] {len(commands)} comandos generados")
+            for cmd in commands:
+                logger(f"[INFO] [CMD] {cmd}")
             ok_count += 1
         return {"ok": ok_count, "error": err_count, "total": len(rows)}
 
@@ -147,6 +149,7 @@ def run_preprovision_zte(
             row_error = False
 
             for cmd in commands:
+                logger(f"[INFO] [CMD] {cmd}")
                 out = conn.send_command_timing(cmd)
                 if _has_error(out):
                     logger(f"[ERROR] Fallo en la inyección de {sn}. Omitiendo y continuando con el siguiente")

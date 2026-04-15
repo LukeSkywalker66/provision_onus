@@ -68,6 +68,51 @@ EXEC = {
     "delay_between_onus_largo": int(os.getenv("DELAY_BETWEEN_ONUS_LONG", 200)),
 }
 
+
+def _parse_mode_overrides(raw_value: str):
+    """
+    Parsea regla de overrides por prefijo de modelo desde .env.
+
+    Formato esperado:
+    MIGRATION_MODE_OVERRIDES=ZTE=ROUTER,HWTC=BRIDGE
+    """
+    overrides = {}
+    if not raw_value:
+        return overrides
+
+    for chunk in raw_value.split(","):
+        item = chunk.strip()
+        if not item or "=" not in item:
+            continue
+        key, value = item.split("=", 1)
+        model_prefix = key.strip().upper()
+        mode = value.strip().upper()
+        if not model_prefix:
+            continue
+        if mode not in {"ROUTER", "BRIDGE"}:
+            continue
+        overrides[model_prefix] = mode
+
+    return overrides
+
+
+MIGRATION_MODE_OVERRIDES = _parse_mode_overrides(os.getenv("MIGRATION_MODE_OVERRIDES", ""))
+
+
+def get_mode_override_for_model(ont_model: str):
+    """
+    Retorna ROUTER/BRIDGE si hay override por prefijo de modelo.
+    Si no hay regla, retorna cadena vacía.
+    """
+    model = (ont_model or "").strip().upper()
+    if not model:
+        return ""
+
+    for prefix, mode in MIGRATION_MODE_OVERRIDES.items():
+        if model.startswith(prefix):
+            return mode
+    return ""
+
 # Comandos OMCI específicos por OLT y modo
 # IMPORTANTE: Cada OLT tiene configuración única (profile-ids, traffic-tables, etc.)
 OLT_COMMANDS = {
