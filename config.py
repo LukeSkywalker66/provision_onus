@@ -118,23 +118,79 @@ def get_mode_override_for_model(ont_model: str):
 # Configuración para Inyección Huawei (PREPROVISIONAMIENTO)
 # ============================================================================
 
+def _parse_ont_mode_profiles(raw_value: str):
+    """
+    Parsea mapeo de modelos ONT a perfiles Huawei desde .env.
+    
+    Formato esperado:
+    HUAWEI_ONT_MODE_PROFILES=EG8021V5:1:2,EG8141A5:1:1,HG8245H:1:4
+    
+    Retorna dict: {"EG8021V5": (1, 2), "EG8141A5": (1, 1), ...}
+    """
+    mapping = {}
+    if not raw_value:
+        return mapping
+    
+    for chunk in raw_value.split(","):
+        chunk = chunk.strip()
+        if not chunk or ":" not in chunk:
+            continue
+        parts = chunk.split(":")
+        if len(parts) != 3:
+            continue
+        
+        ont_model = parts[0].strip().upper()
+        try:
+            line_prof = parts[1].strip()
+            srv_prof = parts[2].strip()
+            mapping[ont_model] = (line_prof, srv_prof)
+        except (ValueError, IndexError):
+            continue
+    
+    return mapping
+
+
 HUAWEI_INJECTION = {
     "vlan_id": os.getenv("HUAWEI_VLAN_ID", "700"),
-    "traffic_table_up": os.getenv("HUAWEI_TRAFFIC_TABLE_UP", "6"),
-    "traffic_table_down": os.getenv("HUAWEI_TRAFFIC_TABLE_DOWN", "6"),
-    "line_prof_router": os.getenv("HUAWEI_LINE_PROF_ROUTER", "10"),
-    "srv_prof_router": os.getenv("HUAWEI_SRV_PROF_ROUTER", "10"),
-    "line_prof_bridge": os.getenv("HUAWEI_LINE_PROF_BRIDGE", "20"),
-    "srv_prof_bridge": os.getenv("HUAWEI_SRV_PROF_BRIDGE", "20"),
+    "traffic_table_up": os.getenv("HUAWEI_TRAFFIC_TABLE_UP", "8"),
+    "traffic_table_down": os.getenv("HUAWEI_TRAFFIC_TABLE_DOWN", "9"),
+    "line_prof_default": os.getenv("HUAWEI_LINE_PROF_DEFAULT", "6"),
+    "srv_prof_default": os.getenv("HUAWEI_SRV_PROF_DEFAULT", "3"),
 }
+
+# Mapeo de modelos ONT a perfiles (line_profile_id, service_profile_id)
+_ONT_MODE_PROFILES = _parse_ont_mode_profiles(os.getenv("HUAWEI_ONT_MODE_PROFILES", ""))
 
 
 def get_huawei_injection_params():
     """
-    Retorna diccionario con parámetros de inyección Huawei desde config.
+    Retorna diccionario con parámetros básicos de inyección Huawei desde config.
     Todos los valores son strings para facilitar interpolación en CLI.
     """
     return HUAWEI_INJECTION.copy()
+
+
+def get_huawei_profiles_for_ont_model(ont_model: str):
+    """
+    Busca los perfiles (line_profile_id, service_profile_id) para un modelo ONT específico.
+    
+    Si el modelo está en el mapeo -> retorna (line_prof, srv_prof)
+    Si no -> retorna los perfiles default (fallback genérico)
+    
+    Args:
+        ont_model: Modelo de la ONT (ej: "EG8021V5", "HG8245H")
+    
+    Returns:
+        Tupla (line_profile_id, service_profile_id) como strings
+    """
+    model = (ont_model or "").strip().upper()
+    
+    # Buscar en el mapeo específico
+    if model in _ONT_MODE_PROFILES:
+        return _ONT_MODE_PROFILES[model]
+    
+    # Fallback: usar perfiles genéricos
+    return (HUAWEI_INJECTION["line_prof_default"], HUAWEI_INJECTION["srv_prof_default"])
 
 
 # Comandos OMCI específicos por OLT y modo

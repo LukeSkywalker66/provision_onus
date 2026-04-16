@@ -12,16 +12,12 @@ VLAN_ID = _huawei_config["vlan_id"]
 TRAFFIC_TABLE_UP = _huawei_config["traffic_table_up"]
 TRAFFIC_TABLE_DOWN = _huawei_config["traffic_table_down"]
 
-# Perfiles para modo ROUTER
-LINE_PROF_ROUTER = _huawei_config["line_prof_router"]
-SRV_PROF_ROUTER = _huawei_config["srv_prof_router"]
 
-# Perfiles para modo BRIDGE
-LINE_PROF_BRIDGE = _huawei_config["line_prof_bridge"]
-SRV_PROF_BRIDGE = _huawei_config["srv_prof_bridge"]
+# Nota: Los perfiles de línea y servicio ahora se obtienen dinámicamente por modelo ONT
+# usando config.get_huawei_profiles_for_ont_model()
 
 
-REQUIRED_COLUMNS_BASE = ["PON_DESTINO", "SN", "PPPoE_USER", "ONT_MODE"]
+REQUIRED_COLUMNS_BASE = ["PON_DESTINO", "SN", "PPPoE_USER", "ONT_MODEL"]
 HUAWEI_ID_CANDIDATES = ["ID", "HUAWEI_ONU_ID", "ZTE_ONU_ID"]
 
 
@@ -56,7 +52,7 @@ def load_migration_csv(file_path: str) -> List[Dict[str, str]]:
                 "HUAWEI_ONU_ID": huawei_onu_id,
                 "SN": (row.get("SN") or "").replace(":", "").strip(),
                 "PPPoE_USER": (row.get("PPPoE_USER") or "").strip(),
-                "ONT_MODE": (row.get("ONT_MODE") or "BRIDGE").strip().upper(),
+                "ONT_MODEL": (row.get("ONT_MODEL") or "").strip().upper(),
             }
             if not cleaned["PON_DESTINO"] or not cleaned["HUAWEI_ONU_ID"] or not cleaned["SN"]:
                 continue
@@ -87,35 +83,29 @@ def parse_frame_slot_port(pon_destino: str) -> Tuple[str, str]:
 
 
 def build_row_commands(row: Dict[str, str]) -> List[str]:
+    """
+    Genera comandos Huawei VRP para provisionar una ONT.
+    
+    Los perfiles de línea y servicio se obtienen dinámicamente según el modelo ONT.
+    Se mapean desde config.py basado en HUAWEI_ONT_MODE_PROFILES en .env.
+    Si el modelo no está mapeado, se usan los perfiles default (genéricos).
+    """
     frame_slot, port = parse_frame_slot_port(row["PON_DESTINO"])
     onu_id = row["HUAWEI_ONU_ID"]
     sn = row["SN"].replace(":", "")
     pppoe_user = row["PPPoE_USER"]
-    ont_mode = (row["ONT_MODE"] or "BRIDGE").upper()
-
-    if ont_mode == "ROUTER":
-        return [
-            f"interface gpon {frame_slot}",
-            (
-                f"ont add {port} {onu_id} sn-auth {sn} omci "
-                f"ont-lineprofile-id {LINE_PROF_ROUTER} ont-srvprofile-id {SRV_PROF_ROUTER} "
-                f"desc \"{pppoe_user}\""
-            ),
-            "quit",
-            (
-                f"service-port vlan {VLAN_ID} gpon {frame_slot}/{port} ont {onu_id} gemport 1 "
-                f"multi-service user-vlan {VLAN_ID} rx-cttr {TRAFFIC_TABLE_UP} tx-cttr {TRAFFIC_TABLE_DOWN}"
-            ),
-        ]
-
+    ont_model = row.get("ONT_MODEL", "")
+    
+    # Obtener perfiles específicos para este modelo ONT
+    line_prof, srv_prof = config.get_huawei_profiles_for_ont_model(ont_model)
+    
     return [
         f"interface gpon {frame_slot}",
         (
             f"ont add {port} {onu_id} sn-auth {sn} omci "
-            f"ont-lineprofile-id {LINE_PROF_BRIDGE} ont-srvprofile-id {SRV_PROF_BRIDGE} "
+            f"ont-lineprofile-id {line_prof} ont-srvprofile-id {srv_prof} "
             f"desc \"{pppoe_user}\""
         ),
-        f"ont port native-vlan {port} {onu_id} eth 1 vlan {VLAN_ID}",
         "quit",
         (
             f"service-port vlan {VLAN_ID} gpon {frame_slot}/{port} ont {onu_id} gemport 1 "
