@@ -2,6 +2,7 @@ import os
 import re
 import threading
 import tkinter as tk
+from tkinter import ttk
 from tkinter import filedialog, scrolledtext, messagebox
 
 from migration_bdcom import (
@@ -11,6 +12,7 @@ from migration_bdcom import (
     parse_bdcom_running_config,
     query_mikrotik_pppoe_users,
 )
+from config import MIKROTIK_MAP
 
 
 class MigrationBDCOMWindow(tk.Toplevel):
@@ -21,11 +23,13 @@ class MigrationBDCOMWindow(tk.Toplevel):
 
         self.running_path = tk.StringVar()
         self.mac_path = tk.StringVar()
+        self.mikrotik_node = tk.StringVar()
         self.mikrotik_host = tk.StringVar()
         self.mikrotik_user = tk.StringVar()
         self.mikrotik_pass = tk.StringVar()
         self.mikrotik_port = tk.StringVar(value="8728")
         self.zte_board = tk.StringVar()
+        self._mikrotik_options = {}
 
         self._build()
 
@@ -44,16 +48,28 @@ class MigrationBDCOMWindow(tk.Toplevel):
         frame_mk = tk.LabelFrame(self, text="MikroTik (API)")
         frame_mk.pack(fill="x", padx=10, pady=6)
 
-        tk.Label(frame_mk, text="Host/IP:").grid(row=0, column=0, sticky="w", padx=6, pady=4)
-        tk.Entry(frame_mk, textvariable=self.mikrotik_host, width=24).grid(row=0, column=1, padx=6, pady=4)
-        tk.Label(frame_mk, text="Usuario:").grid(row=0, column=2, sticky="w", padx=6, pady=4)
-        tk.Entry(frame_mk, textvariable=self.mikrotik_user, width=20).grid(row=0, column=3, padx=6, pady=4)
-        tk.Label(frame_mk, text="Password:").grid(row=0, column=4, sticky="w", padx=6, pady=4)
-        tk.Entry(frame_mk, textvariable=self.mikrotik_pass, show="*", width=20).grid(row=0, column=5, padx=6, pady=4)
-        tk.Label(frame_mk, text="Puerto:").grid(row=0, column=6, sticky="w", padx=6, pady=4)
-        tk.Entry(frame_mk, textvariable=self.mikrotik_port, width=8).grid(row=0, column=7, padx=6, pady=4)
-        tk.Label(frame_mk, text="Placa ZTE Destino (ej: 1/4):").grid(row=1, column=0, sticky="w", padx=6, pady=4)
-        tk.Entry(frame_mk, textvariable=self.zte_board, width=16).grid(row=1, column=1, padx=6, pady=4, sticky="w")
+        tk.Label(frame_mk, text="Nodo: ").grid(row=0, column=0, sticky="w", padx=6, pady=4)
+        self.cmb_mikrotik = ttk.Combobox(
+            frame_mk,
+            textvariable=self.mikrotik_node,
+            state="readonly",
+            width=50,
+        )
+        self.cmb_mikrotik.grid(row=0, column=1, columnspan=3, sticky="w", padx=6, pady=4)
+        self.cmb_mikrotik.bind("<<ComboboxSelected>>", self._on_select_mikrotik)
+
+        tk.Label(frame_mk, text="Host/IP:").grid(row=1, column=0, sticky="w", padx=6, pady=4)
+        tk.Entry(frame_mk, textvariable=self.mikrotik_host, width=24).grid(row=1, column=1, padx=6, pady=4)
+        tk.Label(frame_mk, text="Usuario:").grid(row=1, column=2, sticky="w", padx=6, pady=4)
+        tk.Entry(frame_mk, textvariable=self.mikrotik_user, width=20).grid(row=1, column=3, padx=6, pady=4)
+        tk.Label(frame_mk, text="Password:").grid(row=1, column=4, sticky="w", padx=6, pady=4)
+        tk.Entry(frame_mk, textvariable=self.mikrotik_pass, show="*", width=20).grid(row=1, column=5, padx=6, pady=4)
+        tk.Label(frame_mk, text="Puerto:").grid(row=1, column=6, sticky="w", padx=6, pady=4)
+        tk.Entry(frame_mk, textvariable=self.mikrotik_port, width=8).grid(row=1, column=7, padx=6, pady=4)
+        tk.Label(frame_mk, text="Placa ZTE Destino (ej: 1/4):").grid(row=2, column=0, sticky="w", padx=6, pady=4)
+        tk.Entry(frame_mk, textvariable=self.zte_board, width=16).grid(row=2, column=1, padx=6, pady=4, sticky="w")
+
+        self._load_mikrotik_options()
 
         frame_actions = tk.Frame(self)
         frame_actions.pack(fill="x", padx=10, pady=8)
@@ -89,6 +105,32 @@ class MigrationBDCOMWindow(tk.Toplevel):
         self.log.insert(tk.END, msg + "\n")
         self.log.see(tk.END)
         self.log.update_idletasks()
+
+    def _load_mikrotik_options(self):
+        self._mikrotik_options = {}
+        labels = []
+        for name, cfg in MIKROTIK_MAP.items():
+            ip = cfg.get("ip", "")
+            label = f"{name} ({ip})"
+            self._mikrotik_options[label] = cfg
+            labels.append(label)
+
+        self.cmb_mikrotik["values"] = labels
+        if labels:
+            self.mikrotik_node.set(labels[0])
+            self._apply_mikrotik_node(labels[0])
+
+    def _apply_mikrotik_node(self, label: str):
+        cfg = self._mikrotik_options.get(label)
+        if not cfg:
+            return
+        self.mikrotik_host.set(str(cfg.get("ip", "")))
+        self.mikrotik_user.set(str(cfg.get("user", "")))
+        self.mikrotik_pass.set(str(cfg.get("password", "")))
+        self.mikrotik_port.set(str(cfg.get("port", 8728)))
+
+    def _on_select_mikrotik(self, _event=None):
+        self._apply_mikrotik_node(self.mikrotik_node.get())
 
     def _validate_inputs(self):
         if not self.running_path.get() or not os.path.exists(self.running_path.get()):

@@ -41,6 +41,31 @@ def _load_olt_config(olt_number):
     }
 
 
+def _load_mikrotik_config(node_number):
+    """
+    Carga configuración de un nodo MikroTik API desde variables de entorno.
+
+    Busca:
+    - MIKROTIK_{N}_NAME: Nombre amigable del nodo
+    - MIKROTIK_{N}_IP: Dirección IP o hostname
+    - MIKROTIK_{N}_USER: Usuario API
+    - MIKROTIK_{N}_PASSWORD: Password API
+    - MIKROTIK_{N}_PORT: Puerto API (default: 8728)
+    """
+    prefix = f"MIKROTIK_{node_number}"
+    name = os.getenv(f"{prefix}_NAME")
+
+    if not name:
+        return None
+
+    return {
+        "ip": os.getenv(f"{prefix}_IP"),
+        "user": os.getenv(f"{prefix}_USER"),
+        "password": os.getenv(f"{prefix}_PASSWORD"),
+        "port": int(os.getenv(f"{prefix}_PORT", 8728)),
+    }
+
+
 # Construir OLT_MAP dinámicamente desde .env
 # Soporta hasta 9 OLTs (OLT_1_NAME, OLT_2_NAME, ..., OLT_9_NAME)
 OLT_MAP = {}
@@ -49,6 +74,16 @@ for i in range(1, 10):
     if config:
         olt_name = os.getenv(f"OLT_{i}_NAME")
         OLT_MAP[olt_name] = config
+
+
+# Construir MIKROTIK_MAP dinámicamente desde .env
+# Soporta hasta 9 nodos (MIKROTIK_1_NAME, ..., MIKROTIK_9_NAME)
+MIKROTIK_MAP = {}
+for i in range(1, 10):
+    node = _load_mikrotik_config(i)
+    if node:
+        node_name = os.getenv(f"MIKROTIK_{i}_NAME")
+        MIKROTIK_MAP[node_name] = node
 
 # Parámetros TR-069 / ACS desde .env
 ACS = {

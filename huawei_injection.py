@@ -109,7 +109,9 @@ def build_row_commands(row: Dict[str, str]) -> List[str]:
         "quit",
         (
             f"service-port vlan {VLAN_ID} gpon {frame_slot}/{port} ont {onu_id} gemport 1 "
-            f"multi-service user-vlan {VLAN_ID} rx-cttr {TRAFFIC_TABLE_UP} tx-cttr {TRAFFIC_TABLE_DOWN}"
+            f"multi-service user-vlan {VLAN_ID} tag-transform translate "
+            f"inbound traffic-table index {TRAFFIC_TABLE_UP} "
+            f"outbound traffic-table index {TRAFFIC_TABLE_DOWN}"
         ),
     ]
 
