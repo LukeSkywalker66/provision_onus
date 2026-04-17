@@ -8,6 +8,7 @@ from tkinter import filedialog, scrolledtext, messagebox
 from migration_bdcom import (
     build_migration_rows,
     export_migration_csv,
+    get_mac_vendor_heuristic_diagnostics,
     parse_bdcom_mac_table,
     parse_bdcom_running_config,
     query_mikrotik_pppoe_users,
@@ -28,7 +29,8 @@ class MigrationBDCOMWindow(tk.Toplevel):
         self.mikrotik_user = tk.StringVar()
         self.mikrotik_pass = tk.StringVar()
         self.mikrotik_port = tk.StringVar(value="8728")
-        self.zte_board = tk.StringVar()
+        self.destination_vendor = tk.StringVar(value="zte")
+        self.destination_board = tk.StringVar()
         self._mikrotik_options = {}
 
         self._build()
@@ -66,8 +68,26 @@ class MigrationBDCOMWindow(tk.Toplevel):
         tk.Entry(frame_mk, textvariable=self.mikrotik_pass, show="*", width=20).grid(row=1, column=5, padx=6, pady=4)
         tk.Label(frame_mk, text="Puerto:").grid(row=1, column=6, sticky="w", padx=6, pady=4)
         tk.Entry(frame_mk, textvariable=self.mikrotik_port, width=8).grid(row=1, column=7, padx=6, pady=4)
-        tk.Label(frame_mk, text="Placa ZTE Destino (ej: 1/4):").grid(row=2, column=0, sticky="w", padx=6, pady=4)
-        tk.Entry(frame_mk, textvariable=self.zte_board, width=16).grid(row=2, column=1, padx=6, pady=4, sticky="w")
+        tk.Label(frame_mk, text="Destino CSV:").grid(row=2, column=0, sticky="w", padx=6, pady=4)
+        ttk.Combobox(
+            frame_mk,
+            textvariable=self.destination_vendor,
+            values=["zte", "huawei"],
+            state="readonly",
+            width=12,
+        ).grid(row=2, column=1, padx=6, pady=4, sticky="w")
+
+        tk.Label(
+            frame_mk,
+            text="Placa destino (slot/placa o frame/slot, ej: 1/4 o 0/1):",
+        ).grid(row=2, column=2, columnspan=3, sticky="w", padx=6, pady=4)
+        tk.Entry(frame_mk, textvariable=self.destination_board, width=16).grid(
+            row=2,
+            column=5,
+            padx=6,
+            pady=4,
+            sticky="w",
+        )
 
         self._load_mikrotik_options()
 
@@ -143,14 +163,30 @@ class MigrationBDCOMWindow(tk.Toplevel):
             raise ValueError("Ingresa usuario de MikroTik")
         if not self.mikrotik_port.get().strip().isdigit():
             raise ValueError("Puerto de MikroTik invalido")
-        zte_board = self.zte_board.get().strip()
-        if not re.match(r"^\d+/\d+$", zte_board):
-            raise ValueError("Placa ZTE Destino invalida (formato esperado: 1/4)")
+        destination_board = self.destination_board.get().strip()
+        if not re.match(r"^\d+/\d+$", destination_board):
+            raise ValueError("Placa destino invalida (formato esperado: 1/4 o 0/1)")
+
+        destination_vendor = self.destination_vendor.get().strip().lower()
+        if destination_vendor not in {"zte", "huawei"}:
+            raise ValueError("Destino CSV invalido (usar zte u huawei)")
 
     def _run_generate(self):
         try:
             self.status.config(text="Procesando...")
             self._validate_inputs()
+
+            heur = get_mac_vendor_heuristic_diagnostics()
+            self._write(
+                "[INFO] Heurística MAC/vendor -> "
+                f"enabled={heur.get('enabled')} | "
+                f"OUI overrides={heur.get('overrides_count')} | "
+                f"manuf disponible={heur.get('manuf_available')}"
+            )
+            if heur.get("enabled") and not heur.get("has_data_source"):
+                self._write(
+                    "[WARN] Heurística activa sin fuente de vendors (sin OUI overrides y sin librería manuf)."
+                )
 
             self._write("[1/4] Parseando Running Config...")
             running_map = parse_bdcom_running_config(self.running_path.get())
@@ -170,15 +206,38 @@ class MigrationBDCOMWindow(tk.Toplevel):
             self._write(f"[OK] MikroTik consultado: {len(mac_to_pppoe)} MACs con usuario PPPoE")
 
             self._write("[4/4] Construyendo CSV final de migracion...")
-            rows, matched = build_migration_rows(
+            rows, matched, stats = build_migration_rows(
                 mac_records,
                 mac_to_pppoe,
-                self.zte_board.get().strip(),
+                self.destination_board.get().strip(),
+                self.destination_vendor.get().strip().lower(),
             )
-            output_path = os.path.join(os.getcwd(), "migracion_zte_final.csv")
+            destination_vendor = self.destination_vendor.get().strip().lower()
+            output_filename = f"migracion_{destination_vendor}_final.csv"
+            output_path = os.path.join(os.getcwd(), output_filename)
             export_migration_csv(output_path, rows)
 
             self._write(f"[OK] Cruce exitoso: {matched} clientes")
+            self._write(
+                "[INFO] Clasificacion final ONT_MODE -> "
+                f"ROUTER: {stats.get('final_router', 0)} | "
+                f"BRIDGE: {stats.get('final_bridge', 0)}"
+            )
+            self._write(
+                "[INFO] Fuentes de decision -> "
+                f"Bridge-only model: {stats.get('bridge_only_model', 0)} | "
+                f"SN/MAC mismatch->BRIDGE: {stats.get('sn_mac_vendor_mismatch', 0)} | "
+                f"SN/MAC match->ROUTER: {stats.get('sn_mac_vendor_match', 0)} | "
+                f"Profile origen fallback: {stats.get('source_profile_fallback', 0)} | "
+                f"OVERRIDE fallback: {stats.get('override_fallback', 0)} | "
+                f"Modelo router fallback: {stats.get('known_router_model_fallback', 0)} | "
+                f"Default ROUTER: {stats.get('unresolved_default_router', 0)}"
+            )
+            if stats.get("unresolved_default_router", 0) > 0:
+                self._write(
+                    "[WARN] Hay ONUs clasificadas por fallback final (ROUTER) sin confirmación sólida. "
+                    "Revisar esos casos por separado."
+                )
             self._write(f"[OK] Archivo generado: {output_path}")
             self.status.config(text=f"Completado - {matched} cruces")
             messagebox.showinfo(

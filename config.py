@@ -8,6 +8,8 @@ IMPORTANTE: El archivo .env se crea desde .env.example y no debe commiterse a gi
 """
 
 import os
+import re
+from typing import Dict, List, Tuple
 from dotenv import load_dotenv
 
 # Cargar variables de .env (si existe, sino usa valores por defecto)
@@ -75,6 +77,9 @@ for i in range(1, 10):
         olt_name = os.getenv(f"OLT_{i}_NAME")
         OLT_MAP[olt_name] = config
 
+# OLT objetivo para módulo de inyección Huawei (preaprovisionamiento)
+HUAWEI_INJECTION_OLT_NAME = os.getenv("HUAWEI_INJECTION_OLT_NAME", "OLT-LasTapias-HW").strip()
+
 
 # Construir MIKROTIK_MAP dinámicamente desde .env
 # Soporta hasta 9 nodos (MIKROTIK_1_NAME, ..., MIKROTIK_9_NAME)
@@ -101,6 +106,17 @@ EXEC = {
     "batch_size": int(os.getenv("BATCH_SIZE", 50)),
     "delay_between_onus": float(os.getenv("DELAY_BETWEEN_ONUS", 0.2)),
     "delay_between_onus_largo": int(os.getenv("DELAY_BETWEEN_ONUS_LONG", 200)),
+}
+
+# Parámetros API SmartOLT para movimientos de ONUs
+SMARTOLT = {
+    "base_url": os.getenv("SMARTOLT_BASEURL", "").strip(),
+    "token": os.getenv("SMARTOLT_TOKEN", "").strip(),
+    "olt_id": int(os.getenv("SMARTOLT_OLT_ID", "1")),
+    "timeout": int(os.getenv("SMARTOLT_TIMEOUT", "20")),
+    "retries": int(os.getenv("SMARTOLT_RETRIES", "3")),
+    "retry_delay": float(os.getenv("SMARTOLT_RETRY_DELAY", "1.0")),
+    "move_delay": float(os.getenv("SMARTOLT_MOVE_DELAY", "0.2")),
 }
 
 
@@ -134,6 +150,152 @@ def _parse_mode_overrides(raw_value: str):
 MIGRATION_MODE_OVERRIDES = _parse_mode_overrides(os.getenv("MIGRATION_MODE_OVERRIDES", ""))
 
 
+def _parse_csv_upper_set(raw_value: str):
+    values = set()
+    if not raw_value:
+        return values
+    for chunk in raw_value.split(","):
+        item = chunk.strip().upper()
+        if item:
+            values.add(item)
+    return values
+
+
+def _parse_csv_upper_list(raw_value: str):
+    values = []
+    if not raw_value:
+        return values
+    for chunk in raw_value.split(","):
+        item = chunk.strip().upper()
+        if item:
+            values.append(item)
+    return values
+
+
+def _parse_key_value_upper_map(raw_value: str):
+    mapping = {}
+    if not raw_value:
+        return mapping
+    for chunk in raw_value.split(","):
+        item = chunk.strip()
+        if not item or "=" not in item:
+            continue
+        key, value = item.split("=", 1)
+        k = key.strip().upper()
+        v = value.strip().upper()
+        if k and v:
+            mapping[k] = v
+    return mapping
+
+
+def _parse_oui_vendor_overrides(raw_value: str):
+    """
+    Parsea tabla OUI -> vendor desde .env.
+
+    Formato esperado:
+    MAC_OUI_VENDOR_OVERRIDES=F4F26D=TP-LINK,CC32E5=TP-LINK
+
+    Soporta separadores en OUI (:", "-", ".") y los normaliza a 6 hex.
+    """
+    mapping = {}
+    if not raw_value:
+        return mapping
+
+    for chunk in raw_value.split(","):
+        item = chunk.strip()
+        if not item or "=" not in item:
+            continue
+        raw_oui, raw_vendor = item.split("=", 1)
+        oui = re.sub(r"[^0-9A-Fa-f]", "", raw_oui or "").upper()
+        vendor = (raw_vendor or "").strip().upper()
+        if len(oui) >= 6 and vendor:
+            mapping[oui[:6]] = vendor
+    return mapping
+
+
+def _parse_ont_vendor_prefixes(raw_value: str):
+    """
+    Parsea mapeo de prefijos de modelo ONT a vendor lógico.
+
+    Formato esperado:
+    ONT_VENDOR_PREFIXES=ZTE=ZTE,F=ZTE,HG=HUAWEI,HS=HUAWEI,EG=HUAWEI
+
+    Retorna lista ordenada de tuplas (prefix, vendor), preservando prioridad.
+    """
+    pairs: List[Tuple[str, str]] = []
+    if not raw_value:
+        return pairs
+
+    for chunk in raw_value.split(","):
+        item = chunk.strip()
+        if not item or "=" not in item:
+            continue
+        prefix, vendor = item.split("=", 1)
+        p = prefix.strip().upper()
+        v = vendor.strip().upper()
+        if p and v:
+            pairs.append((p, v))
+    return pairs
+
+
+ENABLE_MAC_VENDOR_BRIDGE_HEURISTIC = os.getenv(
+    "ENABLE_MAC_VENDOR_BRIDGE_HEURISTIC",
+    "true",
+).strip().lower() in {"1", "true", "yes", "on"}
+
+MAC_BRIDGE_VENDOR_KEYWORDS = _parse_csv_upper_set(
+    os.getenv("MAC_BRIDGE_VENDOR_KEYWORDS", "TP-LINK,TPLINK")
+)
+
+MAC_BRIDGE_ONU_VENDOR_ALLOWLIST = _parse_csv_upper_set(
+    os.getenv("MAC_BRIDGE_ONU_VENDOR_ALLOWLIST", "HUAWEI,ICON,ORANGE")
+)
+
+SN_VENDOR_PREFIX_MAP = _parse_key_value_upper_map(
+    os.getenv("SN_VENDOR_PREFIX_MAP", "ZTE=ZTE,HWT=HUAWEI,TPL=TPLINK")
+)
+
+MAC_VENDOR_KEYWORD_MAP = _parse_key_value_upper_map(
+    os.getenv(
+        "MAC_VENDOR_KEYWORD_MAP",
+        "ZTE=ZTE,HUAWEI=HUAWEI,TP-LINK=TPLINK,TPLINK=TPLINK,MERCUSYS=TPLINK,ICON=ICON,ORANGE=ORANGE",
+    )
+)
+
+KNOWN_ROUTER_MODEL_PREFIXES = _parse_csv_upper_list(
+    os.getenv("KNOWN_ROUTER_MODEL_PREFIXES", "ZTE,F,HG,HS,EG,IC,OR,TX,XN")
+)
+
+SN_MAC_MISMATCH_BRIDGE_SN_VENDORS = _parse_csv_upper_set(
+    os.getenv("SN_MAC_MISMATCH_BRIDGE_SN_VENDORS", "HUAWEI,ICON,ORANGE")
+)
+
+BRIDGE_ONLY_MODELS = _parse_csv_upper_set(
+    os.getenv(
+        "BRIDGE_ONLY_MODELS",
+        "EG8021V5,GP1704-2FC-S,GP1705-2G,IC425ETB,HG8310M,TX-6610,HG8010H,HG8240H",
+    )
+)
+
+HUAWEI_MAC_VALIDATION_MODEL_PREFIXES = _parse_csv_upper_list(
+    os.getenv(
+        "HUAWEI_MAC_VALIDATION_MODEL_PREFIXES",
+        "EG8141A5,IC405WSG,HG8245H,HG8245H5,IC410WSG",
+    )
+)
+
+MAC_OUI_VENDOR_OVERRIDES = _parse_oui_vendor_overrides(
+    os.getenv("MAC_OUI_VENDOR_OVERRIDES", "")
+)
+
+ONT_VENDOR_PREFIXES = _parse_ont_vendor_prefixes(
+    os.getenv(
+        "ONT_VENDOR_PREFIXES",
+        "IC=ICON,OR=ORANGE,HG=HUAWEI,HS=HUAWEI,EG=HUAWEI,ZTE=ZTE,F=ZTE",
+    )
+)
+
+
 def get_mode_override_for_model(ont_model: str):
     """
     Retorna ROUTER/BRIDGE si hay override por prefijo de modelo.
@@ -147,6 +309,78 @@ def get_mode_override_for_model(ont_model: str):
         if model.startswith(prefix):
             return mode
     return ""
+
+
+def get_ont_vendor_for_model(ont_model: str):
+    """
+    Retorna vendor lógico (ej: ZTE/HUAWEI) según prefijo de modelo ONT.
+    Si no encuentra match, retorna cadena vacía.
+    """
+    model = (ont_model or "").strip().upper()
+    if not model:
+        return ""
+    for prefix, vendor in ONT_VENDOR_PREFIXES:
+        if model.startswith(prefix):
+            return vendor
+    return ""
+
+
+def get_vendor_from_sn(sn: str):
+    """
+    Infere vendor ONU por prefijo del SN (prioriza prefijos más largos).
+    """
+    serial = (sn or "").strip().upper()
+    if not serial:
+        return ""
+
+    for prefix in sorted(SN_VENDOR_PREFIX_MAP.keys(), key=len, reverse=True):
+        if serial.startswith(prefix):
+            return SN_VENDOR_PREFIX_MAP[prefix]
+    return ""
+
+
+def get_vendor_from_mac_vendor_name(mac_vendor: str):
+    """
+    Normaliza nombre de fabricante de MAC a vendor lógico por keywords.
+    """
+    name = (mac_vendor or "").strip().upper()
+    if not name:
+        return ""
+
+    for keyword, vendor in MAC_VENDOR_KEYWORD_MAP.items():
+        if keyword in name:
+            return vendor
+    return ""
+
+
+def is_known_router_model(ont_model: str):
+    model = (ont_model or "").strip().upper()
+    if not model:
+        return False
+    return any(model.startswith(prefix) for prefix in KNOWN_ROUTER_MODEL_PREFIXES if prefix)
+
+
+def is_bridge_only_model(ont_model: str):
+    model = (ont_model or "").strip().upper()
+    if not model:
+        return False
+    return model in BRIDGE_ONLY_MODELS
+
+
+def is_huawei_mac_validation_model(ont_model: str):
+    """
+    Retorna True para modelos que requieren validación adicional por MAC Huawei.
+
+    Se evalúa por prefijos para cubrir variantes/sufijos de un mismo modelo.
+    """
+    model = (ont_model or "").strip().upper()
+    if not model:
+        return False
+    return any(
+        model.startswith(prefix)
+        for prefix in HUAWEI_MAC_VALIDATION_MODEL_PREFIXES
+        if prefix
+    )
 
 
 # ============================================================================
@@ -191,6 +425,15 @@ HUAWEI_INJECTION = {
     "traffic_table_down": os.getenv("HUAWEI_TRAFFIC_TABLE_DOWN", "9"),
     "line_prof_default": os.getenv("HUAWEI_LINE_PROF_DEFAULT", "6"),
     "srv_prof_default": os.getenv("HUAWEI_SRV_PROF_DEFAULT", "3"),
+    "cmd_delay": float(os.getenv("HUAWEI_INJECTION_CMD_DELAY", "0.4")),
+    "max_retries": int(os.getenv("HUAWEI_INJECTION_MAX_RETRIES", "10")),
+    "forbidden_prompt_prefixes": _parse_csv_upper_list(
+        os.getenv("HUAWEI_INJECTION_FORBIDDEN_PROMPT_PREFIXES", "VD2")
+    ),
+    "require_explicit_model_profile": os.getenv(
+        "HUAWEI_REQUIRE_EXPLICIT_MODEL_PROFILE",
+        "true",
+    ).strip().lower() in {"1", "true", "yes", "on"},
 }
 
 # Mapeo de modelos ONT a perfiles (line_profile_id, service_profile_id)
@@ -199,10 +442,26 @@ _ONT_MODE_PROFILES = _parse_ont_mode_profiles(os.getenv("HUAWEI_ONT_MODE_PROFILE
 
 def get_huawei_injection_params():
     """
-    Retorna diccionario con parámetros básicos de inyección Huawei desde config.
-    Todos los valores son strings para facilitar interpolación en CLI.
+    Retorna diccionario con parámetros de inyección Huawei desde config.
+
+    Tipos:
+    - vlan/traffic/profile: str
+    - cmd_delay: float
+    - max_retries: int
+    - forbidden_prompt_prefixes: list[str]
+    - require_explicit_model_profile: bool
     """
     return HUAWEI_INJECTION.copy()
+
+
+def has_explicit_huawei_profile_for_model(ont_model: str) -> bool:
+    """
+    Indica si un modelo ONT tiene mapeo explícito en HUAWEI_ONT_MODE_PROFILES.
+    """
+    model = (ont_model or "").strip().upper()
+    if not model:
+        return False
+    return model in _ONT_MODE_PROFILES
 
 
 def get_huawei_profiles_for_ont_model(ont_model: str):

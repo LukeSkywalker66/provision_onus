@@ -12,7 +12,7 @@ from zte_injection_ui import ZTEInjectionWindow
 from huawei_injection_ui import HuaweiInjectionWindow
 from csv_logic import parse_smartolt_csv
 from ssh_client import connect_olt, close_olt
-from config import OLT_MAP
+from config import HUAWEI_INJECTION_OLT_NAME, OLT_MAP
 from omci import provision_onu, rollback_onu_serviceport, check_onu_tr069_profile, get_onus_with_tr069_bulk
 from datetime import datetime
 
@@ -392,23 +392,42 @@ def main():
             zte_injection_window["ref"].focus_force()
 
     def on_open_huawei_injection():
-        huawei_cfg = OLT_MAP.get("OLTHUAWEI")
+        huawei_cfg = OLT_MAP.get(HUAWEI_INJECTION_OLT_NAME)
         if not huawei_cfg:
-            for cfg in OLT_MAP.values():
-                if str(cfg.get("fabricante", "")).lower() == "huawei":
-                    huawei_cfg = cfg
-                    break
-        huawei_cfg = huawei_cfg or {}
+            ui.error(
+                "Configuracion invalida",
+                (
+                    "No existe la OLT objetivo para inyeccion Huawei en OLT_MAP: "
+                    f"'{HUAWEI_INJECTION_OLT_NAME}'.\n"
+                    "La ejecucion se detiene hasta corregir la configuracion."
+                ),
+            )
+            return
+
+        target_name = HUAWEI_INJECTION_OLT_NAME
 
         if huawei_injection_window["ref"] is None or not huawei_injection_window["ref"].winfo_exists():
             huawei_injection_window["ref"] = HuaweiInjectionWindow(
                 ui,
+                default_olt_name=target_name,
                 default_ip=huawei_cfg.get("ip", ""),
                 default_user=huawei_cfg.get("user", ""),
                 default_password=huawei_cfg.get("password", ""),
                 default_port=huawei_cfg.get("port", 22),
+                strict_target_identity=True,
             )
         else:
+            # Refrescar siempre los datos del destino configurado para evitar usar
+            # valores viejos de una ventana abierta en una sesion anterior.
+            huawei_injection_window["ref"].olt_name.set(target_name)
+            huawei_injection_window["ref"].huawei_ip.set(huawei_cfg.get("ip", ""))
+            huawei_injection_window["ref"].huawei_user.set(huawei_cfg.get("user", ""))
+            huawei_injection_window["ref"].huawei_password.set(huawei_cfg.get("password", ""))
+            huawei_injection_window["ref"].huawei_port.set(str(huawei_cfg.get("port", 22)))
+            huawei_injection_window["ref"].expected_ip = str(huawei_cfg.get("ip", "")).strip()
+            huawei_injection_window["ref"].expected_user = str(huawei_cfg.get("user", "")).strip()
+            huawei_injection_window["ref"].expected_port = str(huawei_cfg.get("port", 22)).strip()
+            huawei_injection_window["ref"].strict_target_identity = True
             huawei_injection_window["ref"].lift()
             huawei_injection_window["ref"].focus_force()
 
