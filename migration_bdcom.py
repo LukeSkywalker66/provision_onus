@@ -399,9 +399,34 @@ def build_migration_rows(
     return rows, matched, stats
 
 
+def _safe_int(value: object, default: int = 10**9) -> int:
+    try:
+        return int(str(value).strip())
+    except Exception:
+        return default
+
+
+def _pon_sort_key(pon_destino: str) -> Tuple[str, Tuple[int, ...], str]:
+    value = (pon_destino or "").strip().lower()
+    numbers = tuple(_safe_int(n) for n in re.findall(r"\d+", value))
+    if not numbers:
+        numbers = (10**9,)
+    alpha = re.sub(r"\d+", "", value)
+    return alpha, numbers, value
+
+
+def _row_sort_key(row: Dict[str, str]) -> Tuple[str, Tuple[int, ...], str, int, str]:
+    pon_destino = row.get("PON_DESTINO", "")
+    onu_id = _safe_int(row.get("ZTE_ONU_ID", ""))
+    sn = (row.get("SN") or "").strip().upper()
+    pon_alpha, pon_numbers, pon_raw = _pon_sort_key(pon_destino)
+    return pon_alpha, pon_numbers, pon_raw, onu_id, sn
+
+
 def export_migration_csv(output_path: str, rows: List[Dict[str, str]]):
     fields = ["PON_DESTINO", "ZTE_ONU_ID", "SN", "PPPoE_USER", "ONT_MODEL", "ONT_MODE"]
+    ordered_rows = sorted(rows, key=_row_sort_key)
     with open(output_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fields)
         writer.writeheader()
-        writer.writerows(rows)
+        writer.writerows(ordered_rows)

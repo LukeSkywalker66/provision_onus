@@ -21,7 +21,7 @@ class HuaweiInjectionWindow(tk.Toplevel):
     ):
         super().__init__(master)
         self.title("Inyeccion Huawei (Pre-Aprovisionamiento)")
-        self.geometry("980x620")
+        self.geometry("1040x680")
 
         self.olt_name = tk.StringVar(value=(default_olt_name or "HUAWEI"))
         self.huawei_ip = tk.StringVar(value=default_ip)
@@ -84,38 +84,41 @@ class HuaweiInjectionWindow(tk.Toplevel):
         tk.Entry(frame_csv, textvariable=self.csv_path, width=100).pack(side="left", padx=6, pady=6)
         tk.Button(frame_csv, text="Cargar CSV", command=self._browse_csv).pack(side="left", padx=6, pady=6)
 
-        frame_actions = tk.Frame(self)
+        frame_actions = tk.LabelFrame(self, text="Modos de ejecucion")
         frame_actions.pack(fill="x", padx=10, pady=8)
+        frame_actions.grid_columnconfigure(0, weight=1)
+        frame_actions.grid_columnconfigure(1, weight=1)
+
         tk.Checkbutton(
             frame_actions,
             text="Modo Simulacion (Dry-Run)",
             variable=self.simulation_mode,
-        ).pack(side="left", padx=6)
+        ).grid(row=0, column=0, sticky="w", padx=8, pady=4)
         tk.Checkbutton(
             frame_actions,
             text="Modo reparacion (recrear ONU + service-port)",
             variable=self.repair_mode,
-        ).pack(side="left", padx=6)
+        ).grid(row=0, column=1, sticky="w", padx=8, pady=4)
         tk.Checkbutton(
             frame_actions,
             text="Mover ONUs en SmartOLT por CSV",
             variable=self.smartolt_move_mode,
-        ).pack(side="left", padx=6)
+        ).grid(row=1, column=0, sticky="w", padx=8, pady=4)
         tk.Checkbutton(
             frame_actions,
             text="Solo SmartOLT move (sin inyeccion OLT)",
             variable=self.smartolt_move_only,
-        ).pack(side="left", padx=6)
+        ).grid(row=1, column=1, sticky="w", padx=8, pady=4)
         tk.Checkbutton(
             frame_actions,
             text="Actualizar modo BRIDGE en SmartOLT por CSV",
             variable=self.smartolt_mode_update_mode,
-        ).pack(side="left", padx=6)
+        ).grid(row=2, column=0, sticky="w", padx=8, pady=4)
         tk.Checkbutton(
             frame_actions,
             text="Solo SmartOLT mode update (sin inyeccion OLT)",
             variable=self.smartolt_mode_update_only,
-        ).pack(side="left", padx=6)
+        ).grid(row=2, column=1, sticky="w", padx=8, pady=4)
 
         self.btn_start = tk.Button(
             frame_actions,
@@ -123,10 +126,10 @@ class HuaweiInjectionWindow(tk.Toplevel):
             width=28,
             command=self._on_start,
         )
-        self.btn_start.pack(side="left", padx=8)
+        self.btn_start.grid(row=3, column=0, sticky="w", padx=8, pady=(8, 6))
 
         self.status = tk.Label(frame_actions, text="Listo")
-        self.status.pack(side="left", padx=12)
+        self.status.grid(row=3, column=1, sticky="w", padx=8, pady=(8, 6))
 
         self.log = scrolledtext.ScrolledText(self, height=24, width=130, state="normal")
         self.log.pack(fill="both", expand=True, padx=10, pady=8)
