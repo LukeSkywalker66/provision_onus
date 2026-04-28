@@ -315,10 +315,9 @@ try:
     TPLINK_SSH_ONU_DELAY = float(os.getenv("TPLINK_SSH_ONU_DELAY", "0.3"))
 except Exception:
     TPLINK_SSH_ONU_DELAY = 0.3
-TPLINK_SSH_BACKEND = os.getenv("TPLINK_SSH_BACKEND", "netmiko").strip().lower() or "netmiko"
-TPLINK_PLINK_PATH = os.getenv("TPLINK_PLINK_PATH", "").strip()
-TPLINK_PLINK_ARGS = os.getenv("TPLINK_PLINK_ARGS", "").strip()
-
+TPLINK_SSH_BACKEND = os.getenv("TPLINK_SSH_BACKEND", "plink").strip().lower() or "plink"
+TPLINK_PLINK_PATH = os.getenv("TPLINK_PLINK_PATH", r"C:\Program Files\PuTTY\plink.exe").strip()
+TPLINK_PLINK_ARGS = os.getenv("TPLINK_PLINK_ARGS", "-load tplink_legacy").strip()
 
 def get_mode_override_for_model(ont_model: str):
     """

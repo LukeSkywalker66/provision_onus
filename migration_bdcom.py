@@ -1,27 +1,47 @@
 import csv
+from logging import config
 import os
 import re
-import shlex
-import shutil
-import socket
 import subprocess
 import tempfile
+import os
+import shlex
+import config
+import shutil
+import socket
 import time
+import subprocess
+import tempfile
+import os
 from functools import lru_cache
 from typing import Dict, List, Optional, Tuple
-
 from librouteros import connect as routeros_connect
 from netmiko import ConnectHandler
+import paramiko
+
+# Inyección Agresiva de Algoritmos Legacy (KEX, RSA, DSS)
+legacy_kex = ('diffie-hellman-group1-sha1', 'diffie-hellman-group14-sha1')
+legacy_keys = ('ssh-rsa', 'ssh-dss')
+# Parche estricto para KEX legacy (TP-Link)
+if 'diffie-hellman-group1-sha1' not in paramiko.Transport._preferred_kex:
+    paramiko.Transport._preferred_kex = ('diffie-hellman-group1-sha1', 'diffie-hellman-group14-sha1') + paramiko.Transport._preferred_kex
+
+for kex in legacy_kex:
+    if kex not in paramiko.Transport._preferred_kex:
+        paramiko.Transport._preferred_kex = (kex,) + paramiko.Transport._preferred_kex
+
+for key in legacy_keys:
+    if key not in paramiko.Transport._preferred_pubkeys:
+        paramiko.Transport._preferred_pubkeys = (key,) + paramiko.Transport._preferred_pubkeys
+    # Paramiko maneja internamente _preferred_keys para host keys
+    if hasattr(paramiko.Transport, '_preferred_keys') and key not in paramiko.Transport._preferred_keys:
+        paramiko.Transport._preferred_keys = (key,) + paramiko.Transport._preferred_keys
 
 from config import (
     ENABLE_MAC_VENDOR_BRIDGE_HEURISTIC,
     MAC_OUI_VENDOR_OVERRIDES,
     SN_MAC_MISMATCH_BRIDGE_SN_VENDORS,
     TPLINK_DEFAULT_ONT_MODEL,
-    TPLINK_PLINK_ARGS,
-    TPLINK_PLINK_PATH,
-    TPLINK_SSH_BACKEND,
-    TPLINK_SSH_ONU_DELAY,
     get_mode_override_for_model,
     get_vendor_from_mac_vendor_name,
     get_vendor_from_sn,
@@ -701,29 +721,6 @@ def _extract_ont_mode_from_tplink_wan_output(text: str) -> str:
     return ""
 
 
-def _tplink_base_commands_for_backend(backend: str) -> List[str]:
-    backend_norm = (backend or "").strip().lower()
-    if backend_norm == "plink":
-        # Evitar prompts de enable en sesiones plink.
-        return ["terminal length 0"]
-    return ["enable", "terminal length 0"]
-
-
-def _resolve_plink_path() -> str:
-    if TPLINK_PLINK_PATH and os.path.exists(TPLINK_PLINK_PATH):
-        return TPLINK_PLINK_PATH
-
-    for candidate in ("plink", "plink.exe"):
-        resolved = shutil.which(candidate)
-        if resolved:
-            return resolved
-
-    default_path = r"C:\Program Files\PuTTY\plink.exe"
-    if os.path.exists(default_path):
-        return default_path
-
-    return ""
-
 
 def _parse_tplink_wan_output_bulk(text: str) -> Dict[Tuple[int, int], Dict[str, str]]:
     results: Dict[Tuple[int, int], Dict[str, str]] = {}
@@ -787,195 +784,6 @@ def _merge_tplink_wan_maps(
     return merged
 
 
-def _query_tplink_wan_per_pon_plink_scripted(
-    host: str,
-    username: str,
-    password: str,
-    port: int,
-    sorted_keys: List[Tuple[int, int]],
-    logger=None,
-) -> Dict[Tuple[int, int], Dict[str, str]]:
-    results: Dict[Tuple[int, int], Dict[str, str]] = {}
-    pon_map: Dict[int, List[int]] = {}
-    for pon_port, onu_id in sorted_keys:
-        pon_map.setdefault(pon_port, []).append(onu_id)
-
-    for pon_port in sorted(pon_map.keys()):
-        commands = _tplink_base_commands_for_backend("plink")
-        for onu_id in sorted(set(pon_map[pon_port])):
-            commands.append(f"show ont wan 1/0/{pon_port} {onu_id}")
-        if logger:
-            logger(
-                f"[INFO] [TPLINK-WAN] plink-scripted por PON 1/0/{pon_port} ({len(commands) - 1} ONUs)"
-            )
-        output = _run_tplink_plink_scripted(
-            host=host,
-            username=username,
-            password=password,
-            port=port,
-            commands=commands,
-            logger=logger,
-        )
-        results = _merge_tplink_wan_maps(results, _parse_tplink_wan_output_bulk(output))
-    return results
-
-
-def _run_tplink_plink_commands(
-    host: str,
-    username: str,
-    password: str,
-    port: int,
-    commands: List[str],
-    logger=None,
-) -> str:
-    plink_path = _resolve_plink_path()
-    if not plink_path:
-        raise RuntimeError(
-            "No se encontro plink.exe para usar backend legacy. "
-            "Instala PuTTY o define TPLINK_PLINK_PATH en .env."
-        )
-
-    extra_args = []
-    if TPLINK_PLINK_ARGS:
-        try:
-            extra_args = shlex.split(TPLINK_PLINK_ARGS, posix=False)
-        except Exception:
-            extra_args = TPLINK_PLINK_ARGS.split()
-
-    if not password:
-        raise RuntimeError("Password SSH vacio. Revisa OLT_6_PASSWORD en .env.")
-
-    with tempfile.NamedTemporaryFile("w", delete=False, encoding="utf-8") as tmp:
-        tmp.write("\n".join(commands))
-        tmp_path = tmp.name
-
-    with tempfile.NamedTemporaryFile("w", delete=False, encoding="utf-8") as pw_file:
-        pw_file.write(password)
-        pw_path = pw_file.name
-
-    try:
-        cmd = [
-            plink_path,
-            "-batch",
-            "-ssh",
-            "-P",
-            str(port),
-            "-l",
-            username,
-            "-pwfile",
-            pw_path,
-            host,
-            "-m",
-            tmp_path,
-        ]
-        cmd = cmd[:1] + extra_args + cmd[1:]
-
-        if logger:
-            logger(f"[INFO] SSH TP-LINK backend=plink ({os.path.basename(plink_path)})")
-
-        timeout = max(60, len(commands) * 2)
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-        )
-        output = (result.stdout or "") + (result.stderr or "")
-        if result.returncode != 0:
-            cleaned = output.strip()
-            if "host key is not cached" in cleaned.lower():
-                raise RuntimeError(
-                    "plink: host key no cacheado. Ejecuta plink una vez para aceptar la clave, "
-                    "o define TPLINK_PLINK_ARGS con -hostkey <fingerprint>."
-                )
-            if "further authentication required" in cleaned.lower():
-                if logger:
-                    logger("[WARN] plink batch fallo por auth; reintentando modo scripted.")
-                commands_keys = [
-                    (int(pon), int(onu))
-                    for pon, onu in re.findall(r"show ont wan 1/0/(\d+)\s+(\d+)", "\n".join(commands))
-                ]
-                return _query_tplink_wan_per_pon_plink_scripted(
-                    host=host,
-                    username=username,
-                    password=password,
-                    port=port,
-                    sorted_keys=commands_keys,
-                    logger=logger,
-                )
-            raise RuntimeError(cleaned or f"plink exit code {result.returncode}")
-        return output
-    finally:
-        try:
-            os.remove(tmp_path)
-        except Exception:
-            pass
-        try:
-            os.remove(pw_path)
-        except Exception:
-            pass
-
-
-def _run_tplink_plink_scripted(
-    host: str,
-    username: str,
-    password: str,
-    port: int,
-    commands: List[str],
-    logger=None,
-) -> str:
-    plink_path = _resolve_plink_path()
-    if not plink_path:
-        raise RuntimeError(
-            "No se encontro plink.exe para usar backend legacy. "
-            "Instala PuTTY o define TPLINK_PLINK_PATH en .env."
-        )
-
-    extra_args = []
-    if TPLINK_PLINK_ARGS:
-        try:
-            extra_args = shlex.split(TPLINK_PLINK_ARGS, posix=False)
-        except Exception:
-            extra_args = TPLINK_PLINK_ARGS.split()
-
-    cmd = [
-        plink_path,
-        "-ssh",
-        "-P",
-        str(port),
-        "-l",
-        username,
-        host,
-    ]
-    cmd = cmd[:1] + extra_args + cmd[1:]
-
-    if logger:
-        logger(f"[INFO] SSH TP-LINK backend=plink-scripted ({os.path.basename(plink_path)})")
-        logger("[INFO] Ejecutando lote TP-LINK en modo scripted; puede tardar sin salida intermedia.")
-
-    input_lines = [password, ""]
-    input_lines.extend(commands)
-    input_lines.append("exit")
-    input_data = "\n".join(input_lines) + "\n"
-
-    timeout = max(120, len(commands) * 3)
-    result = subprocess.run(
-        cmd,
-        input=input_data,
-        capture_output=True,
-        text=True,
-        timeout=timeout,
-    )
-    output = (result.stdout or "") + (result.stderr or "")
-    if result.returncode != 0:
-        cleaned = output.strip()
-        if "host key is not cached" in cleaned.lower():
-            raise RuntimeError(
-                "plink: host key no cacheado. Ejecuta plink una vez para aceptar la clave, "
-                "o define TPLINK_PLINK_ARGS con -hostkey <fingerprint>."
-            )
-        raise RuntimeError(cleaned or f"plink exit code {result.returncode}")
-    return output
 
 
 def query_tplink_onu_pppoe_from_running(
@@ -986,132 +794,94 @@ def query_tplink_onu_pppoe_from_running(
     running_map: Dict[Tuple[int, int], Dict[str, str]],
     logger=None,
 ) -> Dict[Tuple[int, int], Dict[str, str]]:
-    """
-    Consulta ONT por ONT en TP-Link usando comandos de solo lectura.
 
-        Comandos enviados:
-            - enable (solo backend netmiko)
-            - terminal length 0
-            - show ont wan 1/0/{pon_port} {onu_id}
-
-    Retorna mapa por (pon_port, onu_id):
-      {
-        "pppoe_user": str,
-        "ont_mode": str,
-        "raw": str,
-      }
-    """
     if logger:
-        logger(f"[INFO] SSH TP-LINK (solo lectura) -> {host}:{port} user={username}")
+        logger(f"[INFO] SSH TP-LINK (Plink Async Streaming) -> {host}:{port}")
 
-    try:
-        with socket.create_connection((host, int(port)), timeout=6):
-            pass
-    except Exception as exc:
-        raise ConnectionError(
-            "No hay conectividad TCP hacia "
-            f"{host}:{port}. Detalle: {exc}. "
-            "Verifica IP/puerto en .env, VPN/ruta/firewall y que Termius use exactamente el mismo destino "
-            "(sin jump host o proxy). Si editaste .env, reinicia la app para recargar configuracion."
-        ) from exc
+    plink_path = config.TPLINK_PLINK_PATH
+    if not os.path.exists(plink_path):
+        raise FileNotFoundError(f"Binario plink.exe no encontrado en: {plink_path}")
 
-    device = {
-        "device_type": "terminal_server",
-        "host": host,
-        "username": username,
-        "password": password,
-        "port": int(port),
-        "fast_cli": False,
-        "global_cmd_verify": False,
-        "timeout": 20,
-    }
-
-    results: Dict[Tuple[int, int], Dict[str, str]] = {}
     sorted_keys = sorted(running_map.keys(), key=lambda item: (item[0], item[1]))
+    commands = ["terminal length 0"]
+    for pon_port, onu_id in sorted_keys:
+        commands.append(f"show ont wan 1/0/{pon_port} {onu_id}")
 
-    if TPLINK_SSH_BACKEND == "plink":
-        commands = _tplink_base_commands_for_backend("plink")
-        for pon_port, onu_id in sorted_keys:
-            commands.append(f"show ont wan 1/0/{pon_port} {onu_id}")
-
-        output = _run_tplink_plink_commands(
-            host=host,
-            username=username,
-            password=password,
-            port=port,
-            commands=commands,
-            logger=logger,
-        )
-        return _parse_tplink_wan_output_bulk(output)
+    tmp_path = None
+    pw_path = None
+    results: Dict[Tuple[int, int], Dict[str, str]] = {}
 
     try:
-        conn = ConnectHandler(**device)
-    except Exception as exc:
-        message = str(exc)
-        lower = message.lower()
-        plink_error = None
-        if "no acceptable host key" in lower or "incompatible ssh peer" in lower:
-            try:
-                commands = _tplink_base_commands_for_backend("plink")
-                for pon_port, onu_id in sorted_keys:
-                    commands.append(f"show ont wan 1/0/{pon_port} {onu_id}")
-                output = _run_tplink_plink_commands(
-                    host=host,
-                    username=username,
-                    password=password,
-                    port=port,
-                    commands=commands,
-                    logger=logger,
-                )
-                return _parse_tplink_wan_output_bulk(output)
-            except Exception as plink_exc:
-                plink_error = plink_exc
-                if logger:
-                    logger(f"[ERROR] Fallback plink fallo: {plink_exc}")
-        detail = (
-            "Fallo la sesion SSH hacia "
-            f"{host}:{port}. Detalle: {exc}. "
-            "Si el TCP conecta pero falla SSH, revisa compatibilidad de algoritmos legacy "
-            "(kex/hostkey/cipher) del equipo TP-LINK."
-        )
-        if plink_error:
-            detail += (
-                " Fallback plink fallo: "
-                f"{plink_error}. "
-                "Si el error menciona host key no cacheado, ejecuta plink manualmente una vez "
-                "para aceptar la clave o usa TPLINK_PLINK_ARGS=-hostkey <fingerprint>."
-            )
-        raise ConnectionError(detail) from exc
-    try:
-        # Estrictamente lectura operacional.
-        conn.send_command("enable", strip_prompt=False, strip_command=False)
-        conn.send_command("terminal length 0", strip_prompt=False, strip_command=False)
+        # 1. Crear temporales primero
+        with tempfile.NamedTemporaryFile("w", delete=False, encoding="utf-8") as tmp:
+            tmp.write("\n".join(commands) + "\nexit\n")
+            tmp_path = tmp.name
 
-        total = len(sorted_keys)
-        for idx, (pon_port, onu_id) in enumerate(sorted_keys, start=1):
-            cmd = f"show ont wan 1/0/{pon_port} {onu_id}"
-            output = conn.send_command(cmd, strip_prompt=False, strip_command=False)
-            pppoe_user = _extract_pppoe_user_from_tplink_wan_output(output)
-            ont_mode = _extract_ont_mode_from_tplink_wan_output(output)
+        with tempfile.NamedTemporaryFile("w", delete=False, encoding="utf-8") as pw_file:
+            pw_file.write(password)
+            pw_path = pw_file.name
 
-            results[(pon_port, onu_id)] = {
-                "pppoe_user": pppoe_user,
-                "ont_mode": ont_mode,
-                "raw": output,
-            }
+        # 2. Parsear argumentos y armar comando
+        extra_args = shlex.split(config.TPLINK_PLINK_ARGS) if config.TPLINK_PLINK_ARGS else []
+        cmd = [plink_path] + extra_args + [
+            "-batch",
+            "-ssh",
+            "-P", str(port),
+            "-l", username,
+            "-pwfile", pw_path,
+            host,
+            "-m", tmp_path
+        ]
 
-            if logger:
-                logger(
-                    f"[INFO] [TPLINK-WAN][{idx}/{total}] 1/0/{pon_port} ont={onu_id} pppoe_user={pppoe_user or '-'} mode={ont_mode or '-'}"
-                )
+        # 3. Ejecutar Popen
+        with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1) as proc:
+            current_pon = None
+            current_onu = None
+            current_buffer = ""
 
-            if TPLINK_SSH_ONU_DELAY > 0:
-                time.sleep(TPLINK_SSH_ONU_DELAY)
+            for line in iter(proc.stdout.readline, ''):
+                clean_line = line.strip()
+
+                if clean_line.startswith("show ont wan"):
+                    if current_pon is not None and current_onu is not None:
+                        results[(current_pon, current_onu)] = {
+                            "pppoe_user": _extract_pppoe_user_from_tplink_wan_output(current_buffer),
+                            "ont_mode": _extract_ont_mode_from_tplink_wan_output(current_buffer),
+                            "raw": current_buffer
+                        }
+
+                    if logger:
+                        logger(f"[INFO] [TPLINK] Consultando: {clean_line}")
+
+                    parts = clean_line.split()
+                    if len(parts) >= 5:
+                        current_pon = int(parts[3].split('/')[-1])
+                        current_onu = int(parts[4])
+                    current_buffer = ""
+
+                elif clean_line:
+                    current_buffer += line
+                    if "Connection type" in clean_line or "username" in clean_line.lower():
+                        if logger:
+                            logger(f"[INFO] [TPLINK]   -> {clean_line}")
+
+            if current_pon is not None and current_onu is not None:
+                results[(current_pon, current_onu)] = {
+                    "pppoe_user": _extract_pppoe_user_from_tplink_wan_output(current_buffer),
+                    "ont_mode": _extract_ont_mode_from_tplink_wan_output(current_buffer),
+                    "raw": current_buffer
+                }
+
+        proc.wait(timeout=180)
+        
     finally:
-        try:
-            conn.disconnect()
-        except Exception:
-            pass
+        # 4. Limpiar basura con validación de existencia
+        if tmp_path:
+            try: os.remove(tmp_path)
+            except Exception: pass
+        if pw_path:
+            try: os.remove(pw_path)
+            except Exception: pass
 
     return results
 
