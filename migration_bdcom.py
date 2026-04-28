@@ -1,14 +1,27 @@
 import csv
+import os
 import re
+import shlex
+import shutil
+import socket
+import subprocess
+import tempfile
+import time
 from functools import lru_cache
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from librouteros import connect as routeros_connect
+from netmiko import ConnectHandler
 
 from config import (
     ENABLE_MAC_VENDOR_BRIDGE_HEURISTIC,
     MAC_OUI_VENDOR_OVERRIDES,
     SN_MAC_MISMATCH_BRIDGE_SN_VENDORS,
+    TPLINK_DEFAULT_ONT_MODEL,
+    TPLINK_PLINK_ARGS,
+    TPLINK_PLINK_PATH,
+    TPLINK_SSH_BACKEND,
+    TPLINK_SSH_ONU_DELAY,
     get_mode_override_for_model,
     get_vendor_from_mac_vendor_name,
     get_vendor_from_sn,
@@ -218,6 +231,244 @@ def parse_bdcom_running_config(file_path: str) -> Dict[Tuple[int, int], Dict[str
     return data
 
 
+def detect_olt_origin_from_running(file_path: str) -> str:
+    """
+    Detecta origen del running-config: bdcom | tplink.
+    Default por compatibilidad: bdcom cuando no hay señales claras.
+    """
+    with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+        text = f.read().lower()
+
+    bdcom_markers = [
+        "welcome to bdcom",
+        "gpon bind-onu sn",
+        "flow-mapping-default-hgu",
+    ]
+    tplink_markers = [
+        "tp-link",
+        "interface gpon ",
+        "onu add",
+        "ont add",
+    ]
+
+    bdcom_score = sum(1 for marker in bdcom_markers if marker in text)
+    tplink_score = sum(1 for marker in tplink_markers if marker in text)
+
+    if tplink_score > bdcom_score:
+        return "tplink"
+    return "bdcom"
+
+
+def _normalize_sn_value(raw_sn: str) -> str:
+    return re.sub(r"[^0-9A-Za-z]", "", (raw_sn or "")).upper()
+
+
+def _infer_tplink_mode_from_lineprofile(lineprofile_id: str, raw_line: str = "") -> str:
+    """
+    Inferencia conservadora del modo TP-Link a partir del perfil de línea.
+
+    Criterio actual:
+    - lineprofile 0 -> BRIDGE
+    - cualquier otro lineprofile -> ROUTER
+    - si el texto de la línea trae señales explícitas, se respetan primero
+    """
+    line_lower = (raw_line or "").lower()
+    if "flow-mapping-default-hgu" in line_lower or " veip" in line_lower:
+        return "ROUTER"
+    if "flow-mapping-default" in line_lower:
+        return "BRIDGE"
+
+    try:
+        profile_num = int(str(lineprofile_id).strip())
+    except Exception:
+        return ""
+
+    return "BRIDGE" if profile_num == 0 else "ROUTER"
+
+
+def parse_tplink_running_config(file_path: str) -> Dict[Tuple[int, int], Dict[str, str]]:
+    """
+    Parser tolerant para running-config de TP-Link GPON OLT.
+    Mantiene estructura de salida compatible con BDCOM:
+      {(pon_port, onu_id): {"sn": str, "ont_model": str, "ont_mode": str}}
+    """
+    with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+        lines = f.read().splitlines()
+
+    current_pon_port = None
+    current_logical = None
+    data: Dict[Tuple[int, int], Dict[str, str]] = {}
+
+    re_int_physical_patterns = [
+        re.compile(r"^\s*interface\s+GPON0/(\d+)\s*$", re.IGNORECASE),
+        re.compile(r"^\s*interface\s+GPON\s+\d+/\d+/(\d+)\s*$", re.IGNORECASE),
+    ]
+    re_int_logical_patterns = [
+        re.compile(r"^\s*interface\s+GPON0/(\d+):(\d+)\s*$", re.IGNORECASE),
+        re.compile(r"^\s*interface\s+GPON\s+\d+/\d+/(\d+):(\d+)\s*$", re.IGNORECASE),
+    ]
+
+    re_bind_bdcom = re.compile(r"\bgpon\s+bind-onu\s+sn\s+(\S+)\s+(\d+)\b", re.IGNORECASE)
+    re_bind_tplink_a = re.compile(
+        r"\b(?:onu|ont)\s+add\s+(\d+)\s+sn\s+(\S+)\s+ont-lineprofile-id\s+(\d+)\s+ont-srvprofile-id\s+(\d+)",
+        re.IGNORECASE,
+    )
+    re_bind_tplink_b = re.compile(
+        r"\b(?:onu|ont)\s+add\s+sn\s+(\S+)\s+(\d+)\s+ont-lineprofile-id\s+(\d+)\s+ont-srvprofile-id\s+(\d+)",
+        re.IGNORECASE,
+    )
+    re_bind_tplink_sn_auth = re.compile(
+        r"\b(?:onu|ont)\s+add\s+(\d+)\s+sn-auth\s+(\S+)\s+ont-lineprofile-id\s+(\d+)\s+ont-srvprofile-id\s+(\d+)",
+        re.IGNORECASE,
+    )
+
+    re_model_patterns = [
+        re.compile(r"\bgpon\s+onu\s+model-id\s+(\S+)\b", re.IGNORECASE),
+        re.compile(r"\b(?:onu|ont)\s+model(?:-id)?\s+(\S+)\b", re.IGNORECASE),
+    ]
+
+    for raw_line in lines:
+        line = raw_line.rstrip()
+        line_lower = line.lower()
+
+        matched_physical = False
+        for pattern in re_int_physical_patterns:
+            m_physical = pattern.match(line)
+            if m_physical:
+                current_pon_port = int(m_physical.group(1))
+                current_logical = None
+                matched_physical = True
+                break
+        if matched_physical:
+            continue
+
+        matched_logical = False
+        for pattern in re_int_logical_patterns:
+            m_logical = pattern.match(line)
+            if m_logical:
+                current_pon_port = int(m_logical.group(1))
+                current_logical = int(m_logical.group(2))
+                key = (current_pon_port, current_logical)
+                if key not in data:
+                    data[key] = {"sn": "", "ont_model": "", "ont_mode": "BRIDGE"}
+                elif not data[key].get("ont_mode"):
+                    data[key]["ont_mode"] = "BRIDGE"
+                matched_logical = True
+                break
+        if matched_logical:
+            continue
+
+        m_bind = re_bind_bdcom.search(line)
+        if m_bind and current_pon_port is not None:
+            sn = _normalize_sn_value(m_bind.group(1))
+            onu_id = int(m_bind.group(2))
+            key = (current_pon_port, onu_id)
+            if key not in data:
+                data[key] = {"sn": sn, "ont_model": "", "ont_mode": ""}
+            else:
+                data[key]["sn"] = sn
+            continue
+
+        m_bind = re_bind_tplink_a.search(line)
+        if m_bind and current_pon_port is not None:
+            lineprofile_id = m_bind.group(3)
+            onu_id = int(m_bind.group(1))
+            sn = _normalize_sn_value(m_bind.group(2))
+            key = (current_pon_port, onu_id)
+            if key not in data:
+                data[key] = {
+                    "sn": sn,
+                    "ont_model": "",
+                    "ont_mode": _infer_tplink_mode_from_lineprofile(lineprofile_id, line),
+                }
+            else:
+                data[key]["sn"] = sn
+                inferred_mode = _infer_tplink_mode_from_lineprofile(lineprofile_id, line)
+                if inferred_mode:
+                    data[key]["ont_mode"] = inferred_mode
+            continue
+
+        m_bind = re_bind_tplink_b.search(line)
+        if m_bind and current_pon_port is not None:
+            lineprofile_id = m_bind.group(3)
+            sn = _normalize_sn_value(m_bind.group(1))
+            onu_id = int(m_bind.group(2))
+            key = (current_pon_port, onu_id)
+            if key not in data:
+                data[key] = {
+                    "sn": sn,
+                    "ont_model": "",
+                    "ont_mode": _infer_tplink_mode_from_lineprofile(lineprofile_id, line),
+                }
+            else:
+                data[key]["sn"] = sn
+                inferred_mode = _infer_tplink_mode_from_lineprofile(lineprofile_id, line)
+                if inferred_mode:
+                    data[key]["ont_mode"] = inferred_mode
+            continue
+
+        m_bind = re_bind_tplink_sn_auth.search(line)
+        if m_bind and current_pon_port is not None:
+            lineprofile_id = m_bind.group(3)
+            onu_id = int(m_bind.group(1))
+            sn = _normalize_sn_value(m_bind.group(2))
+            key = (current_pon_port, onu_id)
+            if key not in data:
+                data[key] = {
+                    "sn": sn,
+                    "ont_model": "",
+                    "ont_mode": _infer_tplink_mode_from_lineprofile(lineprofile_id, line),
+                }
+            else:
+                data[key]["sn"] = sn
+                inferred_mode = _infer_tplink_mode_from_lineprofile(lineprofile_id, line)
+                if inferred_mode:
+                    data[key]["ont_mode"] = inferred_mode
+            continue
+
+        for pattern in re_model_patterns:
+            m_model = pattern.search(line)
+            if m_model and current_pon_port is not None and current_logical is not None:
+                model_id = m_model.group(1).strip()
+                key = (current_pon_port, current_logical)
+                if key not in data:
+                    data[key] = {"sn": "", "ont_model": model_id, "ont_mode": ""}
+                else:
+                    data[key]["ont_model"] = model_id
+                break
+
+        if current_pon_port is not None and current_logical is not None:
+            key = (current_pon_port, current_logical)
+            if key not in data:
+                data[key] = {"sn": "", "ont_model": "", "ont_mode": ""}
+
+            if not data[key].get("ont_mode"):
+                if "flow-mapping-default-hgu" in line_lower or " veip" in line_lower:
+                    data[key]["ont_mode"] = "ROUTER"
+                elif "flow-mapping-default" in line_lower:
+                    data[key]["ont_mode"] = "BRIDGE"
+
+    return data
+
+
+def parse_running_config_auto(file_path: str, forced_origin: Optional[str] = None):
+    """
+    Parser de running-config con detección o forzado de origen.
+    Retorna (running_map, origin_detected).
+    """
+    origin = (forced_origin or "auto").strip().lower()
+    if origin not in {"auto", "bdcom", "tplink"}:
+        raise ValueError("Origen de running-config invalido (auto|bdcom|tplink)")
+
+    if origin == "auto":
+        origin = detect_olt_origin_from_running(file_path)
+
+    if origin == "tplink":
+        return parse_tplink_running_config(file_path), "tplink"
+
+    return parse_bdcom_running_config(file_path), "bdcom"
+
+
 def parse_bdcom_mac_table(file_path: str, running_map: Dict[Tuple[int, int], Dict[str, str]]):
     """
     Cruza MAC table con running_map.
@@ -268,6 +519,666 @@ def parse_bdcom_mac_table(file_path: str, running_map: Dict[Tuple[int, int], Dic
     return records
 
 
+def detect_olt_origin_from_mac_table(file_path: str) -> str:
+    """
+    Detecta origen de tabla MAC: bdcom | tplink.
+    Default por compatibilidad: bdcom.
+    """
+    with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+        text = f.read().lower()
+
+    if re.search(r"\bgpon\d+/\d+/\d+", text) or re.search(r"\bgpon\s+\d+/\d+/\d+", text):
+        return "tplink"
+    if re.search(r"\bgpon0/\d+:\d+-\d+", text):
+        return "bdcom"
+    return "bdcom"
+
+
+def parse_tplink_mac_table(file_path: str, running_map: Dict[Tuple[int, int], Dict[str, str]]):
+    """
+    Parser tolerant para MAC table de TP-Link.
+    Estructura de retorno compatible con parser BDCOM.
+    """
+    with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+        text = f.read()
+
+    records = []
+    seen = set()
+
+    patterns = [
+        re.compile(
+            r"^\s*\d+\s+([0-9A-Fa-f:.-]{12,})\s+\S+\s+gpon0/(\d+):(\d+)(?:-\d+)?\s*$",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r"^\s*([0-9A-Fa-f:.-]{12,})\s+\d+\s+gpon\d+/\d+/(\d+):(\d+)\s+\S+\s+\S+\s*$",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r"^\s*\d+\s+([0-9A-Fa-f:.-]{12,})\s+\S+\s+gpon\s+\d+/(\d+)/(\d+)(?:/\d+)?\s*$",
+            re.IGNORECASE,
+        ),
+    ]
+
+    fallback_pattern = re.compile(
+        r"([0-9A-Fa-f:.-]{12,}).*?gpon(?:0/|\s+\d+/)(\d+)[/:](\d+)",
+        re.IGNORECASE,
+    )
+    only_port_pattern = re.compile(
+        r"^\s*([0-9A-Fa-f:.-]{12,})\s+\d+\s+gpon\d+/\d+/(\d+)\s+\S+\s+\S+\s*$",
+        re.IGNORECASE,
+    )
+
+    has_tplink_port_rows_without_onu = False
+
+    for line in text.splitlines():
+        match = None
+        for pattern in patterns:
+            match = pattern.match(line)
+            if match:
+                break
+
+        if not match:
+            if only_port_pattern.match(line):
+                has_tplink_port_rows_without_onu = True
+            match = fallback_pattern.search(line)
+            if not match:
+                continue
+
+        mac = normalize_mac(match.group(1))
+        if not mac:
+            continue
+
+        pon_port = int(match.group(2))
+        onu_id = int(match.group(3))
+        key = (pon_port, onu_id)
+
+        if key in seen:
+            continue
+        seen.add(key)
+
+        base = running_map.get(key, {"sn": "", "ont_model": "", "ont_mode": ""})
+        source_port = f"gpon0/{pon_port}".lower()
+        records.append(
+            {
+                "mac": mac,
+                "pon_port": pon_port,
+                "onu_id": onu_id,
+                "source_port": source_port,
+                "sn": base.get("sn", ""),
+                "ont_model": base.get("ont_model", ""),
+                "ont_mode": base.get("ont_mode", ""),
+            }
+        )
+
+    if not records and has_tplink_port_rows_without_onu:
+        raise ValueError(
+            "La MAC table TP-LINK no incluye ONT/ONU ID por puerto (solo GponX/Y/Z). "
+            "No es posible cruzar MAC -> ONU de forma confiable con este dump. "
+            "Exporta una tabla que incluya ONT/ONU ID en el puerto (ej: Gpon1/0/1:23)."
+        )
+
+    return records
+
+
+def parse_mac_table_auto(
+    file_path: str,
+    running_map: Dict[Tuple[int, int], Dict[str, str]],
+    forced_origin: Optional[str] = None,
+):
+    """
+    Parser de MAC table con detección o forzado de origen.
+    Retorna (mac_records, origin_detected).
+    """
+    origin = (forced_origin or "auto").strip().lower()
+    if origin not in {"auto", "bdcom", "tplink"}:
+        raise ValueError("Origen de MAC table invalido (auto|bdcom|tplink)")
+
+    if origin == "auto":
+        origin = detect_olt_origin_from_mac_table(file_path)
+
+    if origin == "tplink":
+        return parse_tplink_mac_table(file_path, running_map), "tplink"
+
+    return parse_bdcom_mac_table(file_path, running_map), "bdcom"
+
+
+def _extract_pppoe_user_from_tplink_wan_output(text: str) -> str:
+    patterns = [
+        re.compile(r"pppoe\s+username\s*[:=]\s*(\S+)", re.IGNORECASE),
+        re.compile(r"username\s*[:=]\s*(\S+)", re.IGNORECASE),
+        re.compile(r"user\s*name\s*[:=]\s*(\S+)", re.IGNORECASE),
+        re.compile(r"account\s*[:=]\s*(\S+)", re.IGNORECASE),
+    ]
+    matches = []
+    for line in (text or "").splitlines():
+        line_clean = line.strip()
+        if not line_clean:
+            continue
+        for pattern in patterns:
+            match = pattern.search(line_clean)
+            if match:
+                value = (match.group(1) or "").strip().strip('"').strip("'")
+                if value and value not in {"-", "N/A", "none", "NONE"}:
+                    matches.append(value)
+    if matches:
+        return matches[-1]
+    return ""
+
+
+def _extract_ont_mode_from_tplink_wan_output(text: str) -> str:
+    has_router = False
+    has_bridge = False
+    for raw_line in (text or "").splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        line_lower = line.lower()
+        if "connection type" in line_lower:
+            parts = line.split(":", 1)
+            value = parts[1].strip().lower() if len(parts) > 1 else ""
+            if "bridge" in value:
+                has_bridge = True
+            if (
+                "pppoe" in value
+                or "dynamic" in value
+                or "static" in value
+                or "ipoe" in value
+                or "dhcp" in value
+            ):
+                has_router = True
+
+    if has_router:
+        return "ROUTER"
+    if has_bridge:
+        return "BRIDGE"
+
+    lower = (text or "").lower()
+    if "pppoe" in lower or "route" in lower or "routing" in lower:
+        return "ROUTER"
+    if "bridge" in lower or "bridging" in lower:
+        return "BRIDGE"
+    return ""
+
+
+def _tplink_base_commands_for_backend(backend: str) -> List[str]:
+    backend_norm = (backend or "").strip().lower()
+    if backend_norm == "plink":
+        # Evitar prompts de enable en sesiones plink.
+        return ["terminal length 0"]
+    return ["enable", "terminal length 0"]
+
+
+def _resolve_plink_path() -> str:
+    if TPLINK_PLINK_PATH and os.path.exists(TPLINK_PLINK_PATH):
+        return TPLINK_PLINK_PATH
+
+    for candidate in ("plink", "plink.exe"):
+        resolved = shutil.which(candidate)
+        if resolved:
+            return resolved
+
+    default_path = r"C:\Program Files\PuTTY\plink.exe"
+    if os.path.exists(default_path):
+        return default_path
+
+    return ""
+
+
+def _parse_tplink_wan_output_bulk(text: str) -> Dict[Tuple[int, int], Dict[str, str]]:
+    results: Dict[Tuple[int, int], Dict[str, str]] = {}
+    current_block: List[str] = []
+    current_key: Optional[Tuple[int, int]] = None
+    pending_pon: Optional[str] = None
+
+    def flush():
+        nonlocal current_block, current_key, pending_pon
+        if current_key and current_block:
+            block_text = "\n".join(current_block)
+            if current_key in results:
+                block_text = results[current_key]["raw"] + "\n" + block_text
+            results[current_key] = {
+                "pppoe_user": _extract_pppoe_user_from_tplink_wan_output(block_text),
+                "ont_mode": _extract_ont_mode_from_tplink_wan_output(block_text),
+                "raw": block_text,
+            }
+        current_block = []
+        current_key = None
+        pending_pon = None
+
+    for raw_line in (text or "").splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+
+        pon_match = re.search(r"^PON\s+ID\s*:\s*([0-9/]+)", line, re.IGNORECASE)
+        if pon_match:
+            flush()
+            pending_pon = pon_match.group(1).strip()
+            current_block = [line]
+            continue
+
+        if pending_pon:
+            current_block.append(line)
+            ont_match = re.search(r"^ONT\s+ID\s*:\s*(\d+)", line, re.IGNORECASE)
+            if ont_match and current_key is None:
+                pon_port = int(pending_pon.split("/")[-1])
+                current_key = (pon_port, int(ont_match.group(1)))
+            continue
+
+    flush()
+    return results
+
+
+def _merge_tplink_wan_maps(
+    base: Dict[Tuple[int, int], Dict[str, str]],
+    extra: Dict[Tuple[int, int], Dict[str, str]],
+) -> Dict[Tuple[int, int], Dict[str, str]]:
+    merged = dict(base)
+    for key, payload in extra.items():
+        if key in merged:
+            raw = merged[key].get("raw", "")
+            new_raw = payload.get("raw", "")
+            merged[key]["raw"] = (raw + "\n" + new_raw).strip()
+            merged[key]["pppoe_user"] = payload.get("pppoe_user") or merged[key].get("pppoe_user", "")
+            merged[key]["ont_mode"] = payload.get("ont_mode") or merged[key].get("ont_mode", "")
+        else:
+            merged[key] = payload
+    return merged
+
+
+def _query_tplink_wan_per_pon_plink_scripted(
+    host: str,
+    username: str,
+    password: str,
+    port: int,
+    sorted_keys: List[Tuple[int, int]],
+    logger=None,
+) -> Dict[Tuple[int, int], Dict[str, str]]:
+    results: Dict[Tuple[int, int], Dict[str, str]] = {}
+    pon_map: Dict[int, List[int]] = {}
+    for pon_port, onu_id in sorted_keys:
+        pon_map.setdefault(pon_port, []).append(onu_id)
+
+    for pon_port in sorted(pon_map.keys()):
+        commands = _tplink_base_commands_for_backend("plink")
+        for onu_id in sorted(set(pon_map[pon_port])):
+            commands.append(f"show ont wan 1/0/{pon_port} {onu_id}")
+        if logger:
+            logger(
+                f"[INFO] [TPLINK-WAN] plink-scripted por PON 1/0/{pon_port} ({len(commands) - 1} ONUs)"
+            )
+        output = _run_tplink_plink_scripted(
+            host=host,
+            username=username,
+            password=password,
+            port=port,
+            commands=commands,
+            logger=logger,
+        )
+        results = _merge_tplink_wan_maps(results, _parse_tplink_wan_output_bulk(output))
+    return results
+
+
+def _run_tplink_plink_commands(
+    host: str,
+    username: str,
+    password: str,
+    port: int,
+    commands: List[str],
+    logger=None,
+) -> str:
+    plink_path = _resolve_plink_path()
+    if not plink_path:
+        raise RuntimeError(
+            "No se encontro plink.exe para usar backend legacy. "
+            "Instala PuTTY o define TPLINK_PLINK_PATH en .env."
+        )
+
+    extra_args = []
+    if TPLINK_PLINK_ARGS:
+        try:
+            extra_args = shlex.split(TPLINK_PLINK_ARGS, posix=False)
+        except Exception:
+            extra_args = TPLINK_PLINK_ARGS.split()
+
+    if not password:
+        raise RuntimeError("Password SSH vacio. Revisa OLT_6_PASSWORD en .env.")
+
+    with tempfile.NamedTemporaryFile("w", delete=False, encoding="utf-8") as tmp:
+        tmp.write("\n".join(commands))
+        tmp_path = tmp.name
+
+    with tempfile.NamedTemporaryFile("w", delete=False, encoding="utf-8") as pw_file:
+        pw_file.write(password)
+        pw_path = pw_file.name
+
+    try:
+        cmd = [
+            plink_path,
+            "-batch",
+            "-ssh",
+            "-P",
+            str(port),
+            "-l",
+            username,
+            "-pwfile",
+            pw_path,
+            host,
+            "-m",
+            tmp_path,
+        ]
+        cmd = cmd[:1] + extra_args + cmd[1:]
+
+        if logger:
+            logger(f"[INFO] SSH TP-LINK backend=plink ({os.path.basename(plink_path)})")
+
+        timeout = max(60, len(commands) * 2)
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+        output = (result.stdout or "") + (result.stderr or "")
+        if result.returncode != 0:
+            cleaned = output.strip()
+            if "host key is not cached" in cleaned.lower():
+                raise RuntimeError(
+                    "plink: host key no cacheado. Ejecuta plink una vez para aceptar la clave, "
+                    "o define TPLINK_PLINK_ARGS con -hostkey <fingerprint>."
+                )
+            if "further authentication required" in cleaned.lower():
+                if logger:
+                    logger("[WARN] plink batch fallo por auth; reintentando modo scripted.")
+                commands_keys = [
+                    (int(pon), int(onu))
+                    for pon, onu in re.findall(r"show ont wan 1/0/(\d+)\s+(\d+)", "\n".join(commands))
+                ]
+                return _query_tplink_wan_per_pon_plink_scripted(
+                    host=host,
+                    username=username,
+                    password=password,
+                    port=port,
+                    sorted_keys=commands_keys,
+                    logger=logger,
+                )
+            raise RuntimeError(cleaned or f"plink exit code {result.returncode}")
+        return output
+    finally:
+        try:
+            os.remove(tmp_path)
+        except Exception:
+            pass
+        try:
+            os.remove(pw_path)
+        except Exception:
+            pass
+
+
+def _run_tplink_plink_scripted(
+    host: str,
+    username: str,
+    password: str,
+    port: int,
+    commands: List[str],
+    logger=None,
+) -> str:
+    plink_path = _resolve_plink_path()
+    if not plink_path:
+        raise RuntimeError(
+            "No se encontro plink.exe para usar backend legacy. "
+            "Instala PuTTY o define TPLINK_PLINK_PATH en .env."
+        )
+
+    extra_args = []
+    if TPLINK_PLINK_ARGS:
+        try:
+            extra_args = shlex.split(TPLINK_PLINK_ARGS, posix=False)
+        except Exception:
+            extra_args = TPLINK_PLINK_ARGS.split()
+
+    cmd = [
+        plink_path,
+        "-ssh",
+        "-P",
+        str(port),
+        "-l",
+        username,
+        host,
+    ]
+    cmd = cmd[:1] + extra_args + cmd[1:]
+
+    if logger:
+        logger(f"[INFO] SSH TP-LINK backend=plink-scripted ({os.path.basename(plink_path)})")
+        logger("[INFO] Ejecutando lote TP-LINK en modo scripted; puede tardar sin salida intermedia.")
+
+    input_lines = [password, ""]
+    input_lines.extend(commands)
+    input_lines.append("exit")
+    input_data = "\n".join(input_lines) + "\n"
+
+    timeout = max(120, len(commands) * 3)
+    result = subprocess.run(
+        cmd,
+        input=input_data,
+        capture_output=True,
+        text=True,
+        timeout=timeout,
+    )
+    output = (result.stdout or "") + (result.stderr or "")
+    if result.returncode != 0:
+        cleaned = output.strip()
+        if "host key is not cached" in cleaned.lower():
+            raise RuntimeError(
+                "plink: host key no cacheado. Ejecuta plink una vez para aceptar la clave, "
+                "o define TPLINK_PLINK_ARGS con -hostkey <fingerprint>."
+            )
+        raise RuntimeError(cleaned or f"plink exit code {result.returncode}")
+    return output
+
+
+def query_tplink_onu_pppoe_from_running(
+    host: str,
+    username: str,
+    password: str,
+    port: int,
+    running_map: Dict[Tuple[int, int], Dict[str, str]],
+    logger=None,
+) -> Dict[Tuple[int, int], Dict[str, str]]:
+    """
+    Consulta ONT por ONT en TP-Link usando comandos de solo lectura.
+
+        Comandos enviados:
+            - enable (solo backend netmiko)
+            - terminal length 0
+            - show ont wan 1/0/{pon_port} {onu_id}
+
+    Retorna mapa por (pon_port, onu_id):
+      {
+        "pppoe_user": str,
+        "ont_mode": str,
+        "raw": str,
+      }
+    """
+    if logger:
+        logger(f"[INFO] SSH TP-LINK (solo lectura) -> {host}:{port} user={username}")
+
+    try:
+        with socket.create_connection((host, int(port)), timeout=6):
+            pass
+    except Exception as exc:
+        raise ConnectionError(
+            "No hay conectividad TCP hacia "
+            f"{host}:{port}. Detalle: {exc}. "
+            "Verifica IP/puerto en .env, VPN/ruta/firewall y que Termius use exactamente el mismo destino "
+            "(sin jump host o proxy). Si editaste .env, reinicia la app para recargar configuracion."
+        ) from exc
+
+    device = {
+        "device_type": "terminal_server",
+        "host": host,
+        "username": username,
+        "password": password,
+        "port": int(port),
+        "fast_cli": False,
+        "global_cmd_verify": False,
+        "timeout": 20,
+    }
+
+    results: Dict[Tuple[int, int], Dict[str, str]] = {}
+    sorted_keys = sorted(running_map.keys(), key=lambda item: (item[0], item[1]))
+
+    if TPLINK_SSH_BACKEND == "plink":
+        commands = _tplink_base_commands_for_backend("plink")
+        for pon_port, onu_id in sorted_keys:
+            commands.append(f"show ont wan 1/0/{pon_port} {onu_id}")
+
+        output = _run_tplink_plink_commands(
+            host=host,
+            username=username,
+            password=password,
+            port=port,
+            commands=commands,
+            logger=logger,
+        )
+        return _parse_tplink_wan_output_bulk(output)
+
+    try:
+        conn = ConnectHandler(**device)
+    except Exception as exc:
+        message = str(exc)
+        lower = message.lower()
+        plink_error = None
+        if "no acceptable host key" in lower or "incompatible ssh peer" in lower:
+            try:
+                commands = _tplink_base_commands_for_backend("plink")
+                for pon_port, onu_id in sorted_keys:
+                    commands.append(f"show ont wan 1/0/{pon_port} {onu_id}")
+                output = _run_tplink_plink_commands(
+                    host=host,
+                    username=username,
+                    password=password,
+                    port=port,
+                    commands=commands,
+                    logger=logger,
+                )
+                return _parse_tplink_wan_output_bulk(output)
+            except Exception as plink_exc:
+                plink_error = plink_exc
+                if logger:
+                    logger(f"[ERROR] Fallback plink fallo: {plink_exc}")
+        detail = (
+            "Fallo la sesion SSH hacia "
+            f"{host}:{port}. Detalle: {exc}. "
+            "Si el TCP conecta pero falla SSH, revisa compatibilidad de algoritmos legacy "
+            "(kex/hostkey/cipher) del equipo TP-LINK."
+        )
+        if plink_error:
+            detail += (
+                " Fallback plink fallo: "
+                f"{plink_error}. "
+                "Si el error menciona host key no cacheado, ejecuta plink manualmente una vez "
+                "para aceptar la clave o usa TPLINK_PLINK_ARGS=-hostkey <fingerprint>."
+            )
+        raise ConnectionError(detail) from exc
+    try:
+        # Estrictamente lectura operacional.
+        conn.send_command("enable", strip_prompt=False, strip_command=False)
+        conn.send_command("terminal length 0", strip_prompt=False, strip_command=False)
+
+        total = len(sorted_keys)
+        for idx, (pon_port, onu_id) in enumerate(sorted_keys, start=1):
+            cmd = f"show ont wan 1/0/{pon_port} {onu_id}"
+            output = conn.send_command(cmd, strip_prompt=False, strip_command=False)
+            pppoe_user = _extract_pppoe_user_from_tplink_wan_output(output)
+            ont_mode = _extract_ont_mode_from_tplink_wan_output(output)
+
+            results[(pon_port, onu_id)] = {
+                "pppoe_user": pppoe_user,
+                "ont_mode": ont_mode,
+                "raw": output,
+            }
+
+            if logger:
+                logger(
+                    f"[INFO] [TPLINK-WAN][{idx}/{total}] 1/0/{pon_port} ont={onu_id} pppoe_user={pppoe_user or '-'} mode={ont_mode or '-'}"
+                )
+
+            if TPLINK_SSH_ONU_DELAY > 0:
+                time.sleep(TPLINK_SSH_ONU_DELAY)
+    finally:
+        try:
+            conn.disconnect()
+        except Exception:
+            pass
+
+    return results
+
+
+def build_migration_rows_from_tplink_running(
+    running_map: Dict[Tuple[int, int], Dict[str, str]],
+    tplink_wan_map: Dict[Tuple[int, int], Dict[str, str]],
+    destination_board: str,
+    destination_vendor: str = "zte",
+    destination_base0: Optional[bool] = None,
+):
+    rows = []
+    matched = 0
+    stats = {
+        "final_router": 0,
+        "final_bridge": 0,
+        "bridge_only_model": 0,
+        "sn_mac_vendor_mismatch": 0,
+        "sn_mac_vendor_match": 0,
+        "source_profile_fallback": 0,
+        "override_fallback": 0,
+        "known_router_model_fallback": 0,
+        "unresolved_default_router": 0,
+    }
+
+    for (pon_port, onu_id), info in sorted(running_map.items(), key=lambda x: (x[0][0], x[0][1])):
+        wan = tplink_wan_map.get((pon_port, onu_id), {})
+        user = (wan.get("pppoe_user") or "").strip()
+        if not user:
+            continue
+
+        matched += 1
+        source_port = f"gpon0/{pon_port}"
+        pon_destino = build_pon_destino(
+            source_port,
+            destination_board,
+            destination_vendor,
+            destination_base0=destination_base0,
+        )
+
+        sn_clean = str(info.get("sn", "")).replace(":", "")
+        ont_model = (info.get("ont_model") or "").strip() or TPLINK_DEFAULT_ONT_MODEL
+        base_mode = (wan.get("ont_mode") or info.get("ont_mode") or "ROUTER").strip().upper()
+        if base_mode not in {"ROUTER", "BRIDGE"}:
+            base_mode = "ROUTER"
+
+        final_mode = base_mode
+        if final_mode == "ROUTER":
+            stats["final_router"] += 1
+        else:
+            stats["final_bridge"] += 1
+        stats["source_profile_fallback"] += 1
+
+        rows.append(
+            {
+                "PON_DESTINO": pon_destino,
+                "ZTE_ONU_ID": onu_id,
+                "SN": sn_clean,
+                "PPPoE_USER": user,
+                "ONT_MODEL": ont_model,
+                "ONT_MODE": final_mode,
+            }
+        )
+
+    return rows, matched, stats
+
+
 def query_mikrotik_pppoe_users(host: str, username: str, password: str, port: int = 8728):
     """
     Retorna mapa {mac_normalizada: pppoe_user} usando API de MikroTik.
@@ -302,12 +1213,92 @@ def query_mikrotik_pppoe_users(host: str, username: str, password: str, port: in
     return mac_to_user
 
 
-def build_pon_destino(source_port: str, destination_board: str, destination_vendor: str = "zte") -> str:
+def list_mikrotik_ppp_secrets(host: str, username: str, password: str, port: int = 8728) -> List[str]:
+    """
+    Retorna todos los nombres de /ppp/secret del nodo MikroTik.
+    """
+    api = routeros_connect(
+        host=host,
+        username=username,
+        password=password,
+        port=port,
+        timeout=15,
+    )
+
+    names: List[str] = []
+    secret_rows = api.path("ppp", "secret").select("name")
+    for row in secret_rows:
+        name = str(row.get("name", "")).strip()
+        if name:
+            names.append(name)
+
+    return sorted(set(names), key=lambda x: x.lower())
+
+
+def delete_mikrotik_ppp_secret(host: str, username: str, password: str, secret_name: str, port: int = 8728) -> bool:
+    """
+    Elimina un secret por nombre en /ppp/secret.
+
+    Retorna True si pudo eliminarlo, False si no existe.
+    Lanza excepción si hay error de API/conectividad o si falla el borrado.
+    """
+    target = str(secret_name or "").strip()
+    if not target:
+        raise ValueError("Nombre de secret vacio")
+
+    api = routeros_connect(
+        host=host,
+        username=username,
+        password=password,
+        port=port,
+        timeout=15,
+    )
+
+    secret_path = api.path("ppp", "secret")
+    rows = list(secret_path.select(".id", "name"))
+    row = next((r for r in rows if str(r.get("name", "")).strip() == target), None)
+    if not row:
+        return False
+
+    secret_id = str(row.get(".id", "")).strip()
+    if not secret_id:
+        raise RuntimeError(f"No se pudo obtener .id para secret '{target}'")
+
+    delete_errors: List[str] = []
+    for attempt in (
+        lambda: secret_path.remove(secret_id),
+        lambda: secret_path.remove(id=secret_id),
+        lambda: secret_path.remove(numbers=secret_id),
+        lambda: secret_path.remove(**{".id": secret_id}),
+    ):
+        try:
+            attempt()
+            return True
+        except Exception as exc:
+            delete_errors.append(str(exc))
+
+    raise RuntimeError(
+        f"No se pudo eliminar secret '{target}' (.id={secret_id}). Errores: {' | '.join(delete_errors)}"
+    )
+
+
+def build_pon_destino(
+    source_port: str,
+    destination_board: str,
+    destination_vendor: str = "zte",
+    destination_base0: Optional[bool] = None,
+) -> str:
     """
     Convierte puerto BDCOM (gpon0/X) a formato de destino en espejo.
 
-    - ZTE: gpon_olt-{board}/{X}
-    - Huawei: {board}/{X}
+        - ZTE: gpon_olt-{board}/{X}
+        - Huawei: {board}/{X}
+
+        Ajuste base 0 (resta 1 al puerto origen):
+        - destination_base0=True: siempre resta 1
+        - destination_base0=False: no resta
+        - destination_base0=None: mantiene comportamiento legacy
+            (Huawei resta 1, ZTE no resta)
     """
     source = (source_port or "").strip().lower()
     board = (destination_board or "").strip().strip("/")
@@ -319,15 +1310,22 @@ def build_pon_destino(source_port: str, destination_board: str, destination_vend
     if not match:
         return ""
     port = match.group(1)
+    try:
+        port_num = int(port)
+    except ValueError:
+        return ""
+
+    if destination_base0 is None:
+        # Compatibilidad hacia atrás: Huawei base 0, ZTE base 1.
+        apply_base0 = vendor == "huawei"
+    else:
+        apply_base0 = bool(destination_base0)
+
+    final_port = max(0, port_num - 1) if apply_base0 else port_num
+
     if vendor == "huawei":
-        try:
-            port_num = int(port)
-        except ValueError:
-            return ""
-        # Huawei usa numeración de puertos base 0 en este flujo.
-        corrected_port = max(0, port_num - 1)
-        return f"{board}/{corrected_port}"
-    return f"gpon_olt-{board}/{port}"
+        return f"{board}/{final_port}"
+    return f"gpon_olt-{board}/{final_port}"
 
 
 def build_migration_rows(
@@ -335,6 +1333,7 @@ def build_migration_rows(
     mac_to_pppoe: Dict[str, str],
     destination_board: str,
     destination_vendor: str = "zte",
+    destination_base0: Optional[bool] = None,
 ):
     rows = []
     matched = 0
@@ -355,7 +1354,12 @@ def build_migration_rows(
             continue
         matched += 1
         source_port = str(rec.get("source_port", "")).lower().strip()
-        pon_destino = build_pon_destino(source_port, destination_board, destination_vendor)
+        pon_destino = build_pon_destino(
+            source_port,
+            destination_board,
+            destination_vendor,
+            destination_base0=destination_base0,
+        )
         sn_clean = str(rec.get("sn", "")).replace(":", "")
         ont_model = rec.get("ont_model", "")
         base_mode = rec.get("ont_mode", "")

@@ -117,6 +117,20 @@ SMARTOLT = {
     "retries": int(os.getenv("SMARTOLT_RETRIES", "3")),
     "retry_delay": float(os.getenv("SMARTOLT_RETRY_DELAY", "1.0")),
     "move_delay": float(os.getenv("SMARTOLT_MOVE_DELAY", "0.2")),
+    "delete_delay": float(os.getenv("SMARTOLT_DELETE_DELAY", os.getenv("SMARTOLT_MOVE_DELAY", "0.2"))),
+    "mode_update_delay": float(os.getenv("SMARTOLT_MODE_UPDATE_DELAY", os.getenv("SMARTOLT_MOVE_DELAY", "0.2"))),
+    "authorize_delay": float(os.getenv("SMARTOLT_AUTHORIZE_DELAY", os.getenv("SMARTOLT_MOVE_DELAY", "0.2"))),
+    "authorize_pon_type": os.getenv("SMARTOLT_AUTHORIZE_PON_TYPE", "gpon").strip().lower(),
+    "authorize_gpon_channel": os.getenv("SMARTOLT_AUTHORIZE_GPON_CHANNEL", "gpon").strip().lower(),
+    "authorize_epon_channel": os.getenv("SMARTOLT_AUTHORIZE_EPON_CHANNEL", "epon").strip().lower(),
+    "authorize_vlan": os.getenv("SMARTOLT_AUTHORIZE_VLAN", "").strip(),
+    "authorize_zone": os.getenv("SMARTOLT_AUTHORIZE_ZONE", "").strip(),
+    "authorize_odb": os.getenv("SMARTOLT_AUTHORIZE_ODB", "").strip(),
+    "authorize_address": os.getenv("SMARTOLT_AUTHORIZE_ADDRESS", "").strip(),
+    "authorize_allow_without_board_port": os.getenv("SMARTOLT_AUTHORIZE_ALLOW_WITHOUT_BOARD_PORT", "false").strip().lower() in {"1", "true", "yes", "on"},
+    "authorize_default_mode": os.getenv("SMARTOLT_AUTHORIZE_DEFAULT_MODE", "Routing").strip(),
+    "authorize_upload_profile": os.getenv("SMARTOLT_AUTHORIZE_UPLOAD_PROFILE", "").strip(),
+    "authorize_download_profile": os.getenv("SMARTOLT_AUTHORIZE_DOWNLOAD_PROFILE", "").strip(),
 }
 
 
@@ -277,6 +291,7 @@ BRIDGE_ONLY_MODELS = _parse_csv_upper_set(
     )
 )
 
+
 HUAWEI_MAC_VALIDATION_MODEL_PREFIXES = _parse_csv_upper_list(
     os.getenv(
         "HUAWEI_MAC_VALIDATION_MODEL_PREFIXES",
@@ -294,6 +309,15 @@ ONT_VENDOR_PREFIXES = _parse_ont_vendor_prefixes(
         "IC=ICON,OR=ORANGE,HG=HUAWEI,HS=HUAWEI,EG=HUAWEI,ZTE=ZTE,F=ZTE",
     )
 )
+
+TPLINK_DEFAULT_ONT_MODEL = os.getenv("TPLINK_DEFAULT_ONT_MODEL", "TPLINK").strip() or "TPLINK"
+try:
+    TPLINK_SSH_ONU_DELAY = float(os.getenv("TPLINK_SSH_ONU_DELAY", "0.3"))
+except Exception:
+    TPLINK_SSH_ONU_DELAY = 0.3
+TPLINK_SSH_BACKEND = os.getenv("TPLINK_SSH_BACKEND", "netmiko").strip().lower() or "netmiko"
+TPLINK_PLINK_PATH = os.getenv("TPLINK_PLINK_PATH", "").strip()
+TPLINK_PLINK_ARGS = os.getenv("TPLINK_PLINK_ARGS", "").strip()
 
 
 def get_mode_override_for_model(ont_model: str):

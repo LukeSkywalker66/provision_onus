@@ -1,0 +1,246 @@
+
+DS-P7001-04_36B65E>enable
+
+DS-P7001-04_36B65E#show 
+ access-list          - Display ACL information
+ arp                  - Display ARP information
+ auto-service-port    - Display auto service port configuration
+ auto-voip            - Display Auto VoIP parameters
+ backup-config        - Display the backup-config
+ bandwidth            - Display bandwidth rate configuration
+ boot                 - Display the boot configuration
+ cpu-utilization      - Display CPU utilization
+ dba-profile          - Display DBA profile's configuration information
+ ddm                  - Display DDM information
+ debugging            - Dispaly modules debug status
+ dldp                 - Display DLDP information
+ dpms                 - Display DPMS config
+ environment          - Display the environment infomation
+ etherchannel         - Display EtherChannel information
+ ethernet-oam         - Display Ethernet OAM protocol information
+ fiber-ports          - Display the transceiver info of fiber ports
+ gratuitous-arp       - Display gratuitous ARP configuration
+ gvrp                 - Display GVRP information
+ holiday              - Display holiday configuration
+ image-info           - Display the image info
+ interface            - Display interface status and configuration
+ ip                   - Display IP information
+                                      
+DS-P7001-04_36B65E#show running-config 
+running-config      
+
+DS-P7001-04_36B65E#terminal length     
+length              
+
+DS-P7001-04_36B65E#terminal length 0
+
+DS-P7001-04_36B65E#show running-config                                         
+running-config      
+
+DS-P7001-04_36B65E#show running-config 
+!DS-P7001-04
+#
+vlan 300
+ name "VLAN300"
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+location "VDolores"
+contact-info "2finternet.com.ar"
+serial_port baud_rate 38400
+#
+#
+no system-time ntp
+no system-time dst
+#
+#
+#
+user name admin privilege admin secret 5 $1$C6B>@5A;K8K3E;N2I7L7H/N2O;E5@5E<,}*].
+telnet disable
+no service reset-disable
+#
+#
+#
+#
+#
+#
+#
+#
+ip ssh server 
+#
+#
+#
+#
+#
+
+#
+#
+#
+#
+#
+#
+dba-profile profile-id 0 profile-name default type4 max 1024000
+dba-profile profile-id 10 profile-name Internet type4 max 1024000
+ont-srvprofile gpon profile-id 0 profile-name default
+  mac-learning
+  native-vlan unconcern
+  multicast-mode unconcern
+  multicast-forward unconcern
+  ont-port eth adaptive 4
+  port priority-policy eth 1 unconcern
+  port igmp-forward eth 1 unconcern
+  port q-in-q eth 1 unconcern
+  port eth 1 max-mac-count unlimited
+  port priority-policy eth 2 unconcern
+  port igmp-forward eth 2 unconcern
+  port q-in-q eth 2 unconcern
+  port eth 2 max-mac-count unlimited
+  port priority-policy eth 3 unconcern
+  port igmp-forward eth 3 unconcern
+  port q-in-q eth 3 unconcern
+  port eth 3 max-mac-count unlimited
+  port priority-policy eth 4 unconcern
+  port igmp-forward eth 4 unconcern
+  port q-in-q eth 4 unconcern
+  port eth 4 max-mac-count unlimited
+  ont-port pots adaptive 2
+#
+ont-lineprofile gpon profile-id 0 profile-name default
+  no fec-upstream
+  mapping-mode vlan
+  omcc encrypt
+  tcont 1 dba-profile-id 0
+  gem add 1 tcont 1 encrypt enable
+  gem mapping 1 1 vlan 300
+#
+ont-lineprofile gpon profile-id 10 profile-name Internet_1G
+  no fec-upstream
+  mapping-mode vlan
+  no omcc encrypt
+  tcont 1 dba-profile-id 10
+  gem add 1 tcont 1 encrypt disable
+  gem mapping 1 1 vlan 300
+#
+ont auto-auth
+#
+auto-service-port interface  gpon 1/0/1 config gem-id 1 svlan 300 user-vlan 300 tag-action translate
+auto-service-port interface  gpon 1/0/2 config gem-id 1 svlan 300 user-vlan 300 tag-action translate
+auto-service-port interface  gpon 1/0/3 config gem-id 1 svlan 300 user-vlan 300 tag-action translate
+auto-service-port interface  gpon 1/0/4 config gem-id 1 svlan 300 user-vlan 300 tag-action translate
+interface gpon 1/0/1
+  ont auto-auth authmode sn-auth
+  ont add 0 sn-auth HWTC-BEBCA2A1 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 1 sn-auth HWTC-0B3137A6 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 2 sn-auth TPLG-B5569448 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 3 sn-auth TPLG-E715EDD0 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 4 sn-auth TPLG-B5E00327 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 5 sn-auth TPLG-B55683C0 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 6 sn-auth TPLG-8BDDDD76 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 7 sn-auth TPLG-8BDDE802 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 8 sn-auth TPLG-A2B73830 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 9 sn-auth TPLG-B5564C20 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 10 sn-auth TPLG-B5568FB8 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 11 sn-auth TPLG-B5567F80 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 12 sn-auth TPLG-30C5C508 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 13 sn-auth TPLG-8BDDE37B ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 14 sn-auth TPLG-E31A9A01 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 15 sn-auth TPLG-84DBF0F8 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 16 sn-auth TPLG-B5DFFCE8 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 17 sn-auth TPLG-B535173F ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 18 sn-auth TPLG-8BDDE77B ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 19 sn-auth TPLG-B5568870 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 20 sn-auth TPLG-B5566DF8 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 21 sn-auth TPLG-B5DFFE14 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 22 sn-auth TPLG-B5351892 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 23 sn-auth TPLG-B5DFFF8E ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 24 sn-auth TPLG-B55680E0 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 25 sn-auth TPLG-B5564C68 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 26 sn-auth TPLG-B5DFFCE5 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 27 sn-auth TPLG-A2670468 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 28 sn-auth TPLG-84DB51B0 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 29 sn-auth TPLG-4B2AFB58 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 30 sn-auth TPLG-B55651C0 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 31 sn-auth TPLG-A2370100 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 32 sn-auth TPLG-E31A9BB2 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 33 sn-auth TPLG-8BDDE725 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 34 sn-auth TPLG-B5563F10 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 35 sn-auth TPLG-B5564D50 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 36 sn-auth TPLG-B55677F0 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 37 sn-auth TPLG-CEF49320 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 38 sn-auth TPLG-B53516EF ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 39 sn-auth TPLG-B5565658 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 40 sn-auth TPLG-A28D5BA0 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 41 sn-auth TPLG-51013CF0 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 42 sn-auth TPLG-B5564FC0 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 43 sn-auth TPLG-A28D5AC8 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 44 sn-auth TPLG-B5569220 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 45 sn-auth TPLG-0D91C3F0 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 46 sn-auth TPLG-84DB5B60 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 47 sn-auth TPLG-B5565968 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 48 sn-auth TPLG-8BDDE45B ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 49 sn-auth TPLG-B5DFFE57 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 50 sn-auth TPLG-B5E00303 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 51 sn-auth TPLG-8BDDE818 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 52 sn-auth TPLG-30C5C148 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 53 sn-auth TPLG-B5569940 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 54 sn-auth TPLG-8BDDDC50 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 55 sn-auth TPLG-B5566488 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 56 sn-auth TPLG-A236F4F8 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont add 57 sn-auth TPLG-8BDDE6A3 ont-lineprofile-id 10 ont-srvprofile-id 0
+  ont auto-auth rule 1 ont-lineprofile-id 10 ont-srvprofile-id 0
+#
+interface gpon 1/0/2
+  ont auto-auth authmode sn-auth
+  ont add 0 sn-auth HWTC-0B3137A6 ont-lineprofile-id 0 ont-srvprofile-id 0
+  ont auto-auth rule 1 ont-lineprofile-id 10 ont-srvprofile-id 0
+#
+interface gpon 1/0/3
+  ont auto-auth authmode sn-auth
+  ont auto-auth rule 1 ont-lineprofile-id 10 ont-srvprofile-id 0
+#
+interface gpon 1/0/4
+  ont auto-auth authmode sn-auth
+  ont auto-auth rule 1 ont-lineprofile-id 10 ont-srvprofile-id 0
+#
+interface management 1
+  ip address 192.168.70.2 255.255.255.0
+  ipv6 enable
+#
+interface vlan 1
+  ip address 192.168.0.1 255.255.255.0
+  ipv6 enable
+  dpms interface-id 1
+#
+interface vlan 300
+  ip address 1.1.2.5 255.255.255.0
+  no ipv6 enable
+#
+interface ten-gigabitEthernet 1/0/1
+  speed 1000
+  duplex full
+  switchport general allowed vlan 300 tagged
+  
+#
+interface gigabitEthernet 1/0/2
+  switchport general allowed vlan 300 tagged
+  
+#
+end
+
+DS-P7001-04_36B65E#

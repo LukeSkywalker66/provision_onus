@@ -1,25 +1,28 @@
 import os
 import re
 import threading
+from datetime import datetime
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog, scrolledtext, messagebox
 
 from migration_bdcom import (
+    build_migration_rows_from_tplink_running,
     build_migration_rows,
     export_migration_csv,
     get_mac_vendor_heuristic_diagnostics,
-    parse_bdcom_mac_table,
-    parse_bdcom_running_config,
+    parse_mac_table_auto,
+    parse_running_config_auto,
+    query_tplink_onu_pppoe_from_running,
     query_mikrotik_pppoe_users,
 )
-from config import MIKROTIK_MAP
+from config import MIKROTIK_MAP, OLT_MAP
 
 
 class MigrationBDCOMWindow(tk.Toplevel):
     def __init__(self, master=None):
         super().__init__(master)
-        self.title("Preparar Migracion BDCOM")
+        self.title("Preparar Migracion OLT (BDCOM/TP-LINK)")
         self.geometry("980x620")
 
         self.running_path = tk.StringVar()
@@ -31,7 +34,9 @@ class MigrationBDCOMWindow(tk.Toplevel):
         self.mikrotik_port = tk.StringVar(value="8728")
         self.destination_vendor = tk.StringVar(value="zte")
         self.destination_board = tk.StringVar()
+        self.destination_base0 = tk.BooleanVar(value=False)
         self._mikrotik_options = {}
+        self._log_path = None
 
         self._build()
 
@@ -39,11 +44,11 @@ class MigrationBDCOMWindow(tk.Toplevel):
         frame_files = tk.LabelFrame(self, text="Archivos de entrada")
         frame_files.pack(fill="x", padx=10, pady=8)
 
-        tk.Label(frame_files, text="BDCOM Running Config (.txt):").grid(row=0, column=0, sticky="w", padx=6, pady=4)
+        tk.Label(frame_files, text="Running Config OLT (.txt):").grid(row=0, column=0, sticky="w", padx=6, pady=4)
         tk.Entry(frame_files, textvariable=self.running_path, width=90).grid(row=0, column=1, padx=6, pady=4)
         tk.Button(frame_files, text="Examinar", command=self._browse_running).grid(row=0, column=2, padx=6, pady=4)
 
-        tk.Label(frame_files, text="BDCOM MAC Table (.txt):").grid(row=1, column=0, sticky="w", padx=6, pady=4)
+        tk.Label(frame_files, text="MAC Table OLT (.txt):").grid(row=1, column=0, sticky="w", padx=6, pady=4)
         tk.Entry(frame_files, textvariable=self.mac_path, width=90).grid(row=1, column=1, padx=6, pady=4)
         tk.Button(frame_files, text="Examinar", command=self._browse_mac).grid(row=1, column=2, padx=6, pady=4)
 
@@ -76,14 +81,19 @@ class MigrationBDCOMWindow(tk.Toplevel):
             state="readonly",
             width=12,
         ).grid(row=2, column=1, padx=6, pady=4, sticky="w")
+        tk.Checkbutton(
+            frame_mk,
+            text="Destino base 0",
+            variable=self.destination_base0,
+        ).grid(row=2, column=2, sticky="w", padx=6, pady=4)
 
         tk.Label(
             frame_mk,
             text="Placa destino (slot/placa o frame/slot, ej: 1/4 o 0/1):",
-        ).grid(row=2, column=2, columnspan=3, sticky="w", padx=6, pady=4)
+        ).grid(row=2, column=3, columnspan=3, sticky="w", padx=6, pady=4)
         tk.Entry(frame_mk, textvariable=self.destination_board, width=16).grid(
             row=2,
-            column=5,
+            column=6,
             padx=6,
             pady=4,
             sticky="w",
@@ -122,6 +132,12 @@ class MigrationBDCOMWindow(tk.Toplevel):
         self.focus_force()
 
     def _write(self, msg):
+        if self._log_path:
+            try:
+                with open(self._log_path, "a", encoding="utf-8") as f:
+                    f.write(msg + "\n")
+            except Exception:
+                pass
         self.log.insert(tk.END, msg + "\n")
         self.log.see(tk.END)
         self.log.update_idletasks()
@@ -154,9 +170,9 @@ class MigrationBDCOMWindow(tk.Toplevel):
 
     def _validate_inputs(self):
         if not self.running_path.get() or not os.path.exists(self.running_path.get()):
-            raise ValueError("Selecciona un archivo valido para BDCOM Running Config")
-        if not self.mac_path.get() or not os.path.exists(self.mac_path.get()):
-            raise ValueError("Selecciona un archivo valido para BDCOM MAC Table")
+            raise ValueError("Selecciona un archivo valido para Running Config OLT")
+        if self.mac_path.get().strip() and not os.path.exists(self.mac_path.get()):
+            raise ValueError("Selecciona un archivo valido para MAC Table OLT")
         if not self.mikrotik_host.get().strip():
             raise ValueError("Ingresa Host/IP de MikroTik")
         if not self.mikrotik_user.get().strip():
@@ -171,8 +187,31 @@ class MigrationBDCOMWindow(tk.Toplevel):
         if destination_vendor not in {"zte", "huawei"}:
             raise ValueError("Destino CSV invalido (usar zte u huawei)")
 
+    def _resolve_tplink_olt_for_migration(self):
+        preferred_name = "TpLink_villadolores"
+
+        if preferred_name in OLT_MAP:
+            cfg = OLT_MAP[preferred_name]
+            if str(cfg.get("fabricante", "")).strip().lower() == "tplink":
+                return preferred_name, cfg
+
+        for name, cfg in OLT_MAP.items():
+            if str(cfg.get("fabricante", "")).strip().lower() == "tplink":
+                return name, cfg
+
+        raise ValueError(
+            "No se encontro ninguna OLT TP-LINK en la configuracion (.env). "
+            "Define OLT_n_VENDOR=tplink y credenciales SSH."
+        )
+
     def _run_generate(self):
         try:
+            os.makedirs("logs", exist_ok=True)
+            self._log_path = os.path.join(
+                "logs",
+                datetime.now().strftime("migracion_%Y%m%d-%H%M%S.log"),
+            )
+            self._write(f"[log] Registrando en: {self._log_path}")
             self.status.config(text="Procesando...")
             self._validate_inputs()
 
@@ -188,30 +227,82 @@ class MigrationBDCOMWindow(tk.Toplevel):
                     "[WARN] Heurística activa sin fuente de vendors (sin OUI overrides y sin librería manuf)."
                 )
 
-            self._write("[1/4] Parseando Running Config...")
-            running_map = parse_bdcom_running_config(self.running_path.get())
-            self._write(f"[OK] Running Config parseado: {len(running_map)} ONUs mapeadas por puerto")
-
-            self._write("[2/4] Parseando MAC Table y cruzando con Running Config...")
-            mac_records = parse_bdcom_mac_table(self.mac_path.get(), running_map)
-            self._write(f"[OK] MAC Table parseada: {len(mac_records)} registros con puerto/onu")
-
-            self._write("[3/4] Consultando MikroTik via API (active + secret)...")
-            mac_to_pppoe = query_mikrotik_pppoe_users(
-                host=self.mikrotik_host.get().strip(),
-                username=self.mikrotik_user.get().strip(),
-                password=self.mikrotik_pass.get(),
-                port=int(self.mikrotik_port.get().strip()),
+            self._write("[1/4] Parseando Running Config (auto BDCOM/TP-LINK)...")
+            running_map, running_origin = parse_running_config_auto(self.running_path.get(), forced_origin="auto")
+            self._write(
+                f"[OK] Running Config parseado: {len(running_map)} ONUs mapeadas por puerto | origen={running_origin.upper()}"
             )
-            self._write(f"[OK] MikroTik consultado: {len(mac_to_pppoe)} MACs con usuario PPPoE")
 
-            self._write("[4/4] Construyendo CSV final de migracion...")
-            rows, matched, stats = build_migration_rows(
-                mac_records,
-                mac_to_pppoe,
-                self.destination_board.get().strip(),
-                self.destination_vendor.get().strip().lower(),
-            )
+            if running_origin == "tplink":
+                olt_name, olt_cfg = self._resolve_tplink_olt_for_migration()
+                self._write(
+                    f"[2/4] Consultando ONTs TP-LINK via SSH (solo lectura) en {olt_name} {olt_cfg.get('ip')}:{olt_cfg.get('port')}..."
+                )
+                self._write(
+                    "[INFO] Comandos permitidos en esta fase: enable, terminal length 0, show ont wan ..."
+                )
+                tplink_wan_map = query_tplink_onu_pppoe_from_running(
+                    host=str(olt_cfg.get("ip", "")).strip(),
+                    username=str(olt_cfg.get("user", "")).strip(),
+                    password=str(olt_cfg.get("password", "")),
+                    port=int(olt_cfg.get("port", 22)),
+                    running_map=running_map,
+                    logger=self._write,
+                )
+                pppoe_hits = sum(
+                    1
+                    for item in tplink_wan_map.values()
+                    if str(item.get("pppoe_user", "")).strip()
+                )
+                self._write(
+                    f"[OK] Consulta TP-LINK finalizada: ONTs consultadas={len(tplink_wan_map)} con PPPoE={pppoe_hits}"
+                )
+
+                self._write("[3/4] Construyendo CSV final de migracion (fuente PPPoE desde TP-LINK)...")
+                rows, matched, stats = build_migration_rows_from_tplink_running(
+                    running_map,
+                    tplink_wan_map,
+                    self.destination_board.get().strip(),
+                    self.destination_vendor.get().strip().lower(),
+                    destination_base0=True if self.destination_base0.get() else None,
+                )
+            else:
+                if not self.mac_path.get().strip():
+                    raise ValueError("Para origen BDCOM debes seleccionar tambien MAC Table OLT")
+
+                self._write("[2/4] Parseando MAC Table (auto BDCOM/TP-LINK) y cruzando con Running Config...")
+                mac_records, mac_origin = parse_mac_table_auto(
+                    self.mac_path.get(),
+                    running_map,
+                    forced_origin="auto",
+                )
+                self._write(
+                    f"[OK] MAC Table parseada: {len(mac_records)} registros con puerto/onu | origen={mac_origin.upper()}"
+                )
+
+                if running_origin != mac_origin:
+                    raise ValueError(
+                        "Los archivos no parecen del mismo origen de OLT "
+                        f"(running={running_origin.upper()} vs mac={mac_origin.upper()})."
+                    )
+
+                self._write("[3/4] Consultando MikroTik via API (active + secret)...")
+                mac_to_pppoe = query_mikrotik_pppoe_users(
+                    host=self.mikrotik_host.get().strip(),
+                    username=self.mikrotik_user.get().strip(),
+                    password=self.mikrotik_pass.get(),
+                    port=int(self.mikrotik_port.get().strip()),
+                )
+                self._write(f"[OK] MikroTik consultado: {len(mac_to_pppoe)} MACs con usuario PPPoE")
+
+                self._write("[4/4] Construyendo CSV final de migracion...")
+                rows, matched, stats = build_migration_rows(
+                    mac_records,
+                    mac_to_pppoe,
+                    self.destination_board.get().strip(),
+                    self.destination_vendor.get().strip().lower(),
+                    destination_base0=True if self.destination_base0.get() else None,
+                )
             destination_vendor = self.destination_vendor.get().strip().lower()
             output_filename = f"migracion_{destination_vendor}_final.csv"
             output_path = os.path.join(os.getcwd(), output_filename)

@@ -45,6 +45,8 @@ class App(tk.Tk):
             width=36,
         )
         self.btn_huawei_injection.pack(side="left", padx=4)
+        self.btn_delete_secret = tk.Button(actions, text="Borrar secret", width=18)
+        self.btn_delete_secret.pack(side="left", padx=4)
 
         self.log = scrolledtext.ScrolledText(self, height=24, width=110, state="normal")
         self.log.pack(padx=10, pady=8)

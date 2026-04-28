@@ -8,6 +8,7 @@ import time
 
 from gui import App
 from migration_ui import MigrationBDCOMWindow
+from mikrotik_secret_ui import MikrotikSecretWindow
 from zte_injection_ui import ZTEInjectionWindow
 from huawei_injection_ui import HuaweiInjectionWindow
 from csv_logic import parse_smartolt_csv
@@ -137,6 +138,7 @@ def main():
     migration_window = {"ref": None}
     zte_injection_window = {"ref": None}
     huawei_injection_window = {"ref": None}
+    mikrotik_secret_window = {"ref": None}
 
     # Inicializar logging antes de cualquier procesamiento
     log_path = init_logging()
@@ -431,10 +433,18 @@ def main():
             huawei_injection_window["ref"].lift()
             huawei_injection_window["ref"].focus_force()
 
+    def on_open_mikrotik_secret():
+        if mikrotik_secret_window["ref"] is None or not mikrotik_secret_window["ref"].winfo_exists():
+            mikrotik_secret_window["ref"] = MikrotikSecretWindow(ui)
+        else:
+            mikrotik_secret_window["ref"].lift()
+            mikrotik_secret_window["ref"].focus_force()
+
     ui.btn_run.configure(command=on_click)
     ui.btn_migration.configure(command=on_open_migration)
     ui.btn_zte_injection.configure(command=on_open_zte_injection)
     ui.btn_huawei_injection.configure(command=on_open_huawei_injection)
+    ui.btn_delete_secret.configure(command=on_open_mikrotik_secret)
     ui.mainloop()
 
 if __name__ == "__main__":

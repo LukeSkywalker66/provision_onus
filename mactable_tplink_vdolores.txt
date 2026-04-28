@@ -1,0 +1,68 @@
+DS-P7001-04_36B65E#show mac address-table 
+
+                    MAC Address Table                    
+------------------------------------------------------------  
+MAC                VLAN    Port       Type            Aging    
+---                ----    ----       ----            -----    
+20:23:51:01:3c:f3  300     Gpon1/0/1  dynamic         aging    
+30:68:93:0f:d9:ab  300     Gpon1/0/1  dynamic         aging    
+30:de:4b:2a:fb:5f  300     Gpon1/0/1  dynamic         aging    
+34:60:f9:db:cb:c5  300     Gpon1/0/1  dynamic         aging    
+38:6b:1c:71:7d:65  300     Gpon1/0/1  dynamic         aging    
+3c:6a:d2:16:76:1d  300     Gpon1/0/1  dynamic         aging    
+3c:6a:d2:16:76:33  300     Gpon1/0/1  dynamic         aging    
+3c:78:95:18:1c:a6  300     Gpon1/0/1  dynamic         aging    
+3c:8c:f8:84:d7:2f  300     Gpon1/0/1  dynamic         aging    
+40:ae:30:3e:79:69  300     Gpon1/0/1  dynamic         aging    
+40:ae:30:c5:c1:4b  300     Gpon1/0/1  dynamic         aging    
+40:ae:30:c5:c5:0b  300     Gpon1/0/1  dynamic         aging    
+50:c7:bf:e0:9b:51  300     Gpon1/0/1  dynamic         aging    
+50:f7:ed:40:bc:8f  300     Gpon1/0/1  dynamic         aging    
+50:f7:ed:40:bc:90  300     Gpon1/0/1  dynamic         aging    
+5c:62:8b:7e:95:19  300     Gpon1/0/1  dynamic         aging    
+60:83:e7:15:ed:d3  300     Gpon1/0/1  dynamic         aging    
+60:83:e7:a8:eb:90  300     Gpon1/0/1  dynamic         aging    
+6c:3b:6b:36:37:4c  1       Gi1/0/2    dynamic         aging    
+6c:3b:6b:36:37:4c  300     Gi1/0/2    dynamic         aging    
+74:fe:ce:f4:93:23  300     Gpon1/0/1  dynamic         aging    
+78:8c:b5:56:4c:26  300     Gpon1/0/1  dynamic         aging    
+78:8c:b5:56:4c:6f  300     Gpon1/0/1  dynamic         aging    
+78:8c:b5:56:4d:57  300     Gpon1/0/1  dynamic         aging    
+78:8c:b5:56:4f:c7  300     Gpon1/0/1  dynamic         aging    
+78:8c:b5:56:51:c7  300     Gpon1/0/1  dynamic         aging    
+78:8c:b5:56:56:5f  300     Gpon1/0/1  dynamic         aging    
+78:8c:b5:56:59:6f  300     Gpon1/0/1  dynamic         aging    
+78:8c:b5:56:64:8f  300     Gpon1/0/1  dynamic         aging    
+78:8c:b5:56:6d:fe  300     Gpon1/0/1  dynamic         aging    
+78:8c:b5:56:77:f7  300     Gpon1/0/1  dynamic         aging    
+78:8c:b5:56:7f:86  300     Gpon1/0/1  dynamic         aging    
+78:8c:b5:56:80:e6  300     Gpon1/0/1  dynamic         aging    
+78:8c:b5:56:83:c7  300     Gpon1/0/1  dynamic         aging    
+78:8c:b5:56:88:77  300     Gpon1/0/1  dynamic         aging    
+78:8c:b5:56:8f:be  300     Gpon1/0/1  dynamic         aging    
+78:8c:b5:56:92:26  300     Gpon1/0/1  dynamic         aging    
+78:8c:b5:56:94:4f  300     Gpon1/0/1  dynamic         aging    
+78:8c:b5:56:99:46  300     Gpon1/0/1  dynamic         aging    
+7c:f1:7e:9a:39:ef  300     Gpon1/0/1  dynamic         aging    
+7c:f1:7e:9a:3b:5a  300     Gpon1/0/1  dynamic         aging    
+7c:f1:7e:9a:3b:96  300     Gpon1/0/1  dynamic         aging    
+84:39:8f:7e:b3:48  300     Gpon1/0/1  dynamic         aging    
+8c:90:2d:76:e3:45  300     Gpon1/0/1  dynamic         aging    
+98:da:c4:ea:c2:77  300     Gpon1/0/1  dynamic         aging    
+a8:6e:84:db:51:b3  300     Gpon1/0/1  dynamic         aging    
+a8:6e:84:db:5b:63  300     Gpon1/0/1  dynamic         aging    
+a8:6e:84:db:f0:fb  300     Gpon1/0/1  dynamic         aging    
+ac:15:a2:36:f4:fe  300     Gpon1/0/1  dynamic         aging    
+ac:15:a2:37:01:07  300     Gpon1/0/1  dynamic         aging    
+ac:15:a2:67:04:6e  300     Gpon1/0/1  dynamic         aging    
+ac:15:a2:8d:5a:ce  300     Gpon1/0/1  dynamic         aging    
+ac:15:a2:b7:38:37  300     Gpon1/0/1  dynamic         aging    
+bc:a9:93:42:9f:c1  300     Gpon1/0/1  dynamic         aging    
+c4:16:88:b2:e8:ea  300     Gpon1/0/1  dynamic         aging    
+c4:16:88:b2:e8:eb  300     Gpon1/0/1  dynamic         aging    
+f0:09:0d:91:c3:f3  300     Gpon1/0/1  dynamic         aging    
+
+Total MAC Addresses for this criterion: 57
+
+
+DS-P7001-04_36B65E#
