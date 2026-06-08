@@ -1,4 +1,4 @@
-import csv
+﻿import csv
 from logging import config
 import os
 import re
@@ -13,13 +13,15 @@ import time
 import subprocess
 import tempfile
 import os
+import telnetlib
+import select
 from functools import lru_cache
 from typing import Dict, List, Optional, Tuple
 from librouteros import connect as routeros_connect
 from netmiko import ConnectHandler
 import paramiko
 
-# Inyección Agresiva de Algoritmos Legacy (KEX, RSA, DSS)
+# Inyecci├│n Agresiva de Algoritmos Legacy (KEX, RSA, DSS)
 legacy_kex = ('diffie-hellman-group1-sha1', 'diffie-hellman-group14-sha1')
 legacy_keys = ('ssh-rsa', 'ssh-dss')
 # Parche estricto para KEX legacy (TP-Link)
@@ -74,10 +76,10 @@ class MacVendorResolver:
     """
     Resuelve vendor por MAC de forma eficiente.
 
-    Orden de resolución:
+    Orden de resoluci├│n:
     1) Overrides por OUI desde .env (O(1))
-    2) Base local de manuf (si está instalada)
-    3) Vacío si no se pudo resolver
+    2) Base local de manuf (si est├í instalada)
+    3) Vac├¡o si no se pudo resolver
     """
 
     def __init__(self):
@@ -132,7 +134,7 @@ def get_mac_vendor_heuristic_diagnostics() -> Dict[str, object]:
 
 def _resolve_ont_mode_mac_first(base_mode: str, ont_model: str, sn: str, mac: str) -> Tuple[str, str]:
     """
-    Estrategia de clasificación ONT_MODE:
+    Estrategia de clasificaci├│n ONT_MODE:
 
     1) Vendor por SN (prefijos, ej: ZTE/TPL/HWT)
     2) Vendor por MAC (resuelto por OUI/manuf y normalizado)
@@ -141,7 +143,7 @@ def _resolve_ont_mode_mac_first(base_mode: str, ont_model: str, sn: str, mac: st
     3) Fallback a profile/flow de OLT origen (base_mode)
     4) Fallback por override de modelo
     5) Fallback por modelo conocido router
-    6) Default final: ROUTER (marcado para revisión)
+    6) Default final: ROUTER (marcado para revisi├│n)
     """
     if is_bridge_only_model(ont_model):
         return "BRIDGE", "BRIDGE_ONLY_MODEL"
@@ -155,8 +157,8 @@ def _resolve_ont_mode_mac_first(base_mode: str, ont_model: str, sn: str, mac: st
         if mac_vendor:
             mac_vendor_norm = get_vendor_from_mac_vendor_name(mac_vendor)
 
-    # Regla específica para modelos mixtos: si la MAC no resuelve como Huawei,
-    # clasificar como BRIDGE de forma determinística.
+    # Regla espec├¡fica para modelos mixtos: si la MAC no resuelve como Huawei,
+    # clasificar como BRIDGE de forma determin├¡stica.
     if is_huawei_mac_validation_model(ont_model) and mac_vendor_norm and mac_vendor_norm != "HUAWEI":
         return "BRIDGE", "TARGET_MODEL_NON_HUAWEI_MAC"
 
@@ -254,7 +256,7 @@ def parse_bdcom_running_config(file_path: str) -> Dict[Tuple[int, int], Dict[str
 def detect_olt_origin_from_running(file_path: str) -> str:
     """
     Detecta origen del running-config: bdcom | tplink.
-    Default por compatibilidad: bdcom cuando no hay señales claras.
+    Default por compatibilidad: bdcom cuando no hay se├▒ales claras.
     """
     with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
         text = f.read().lower()
@@ -285,12 +287,12 @@ def _normalize_sn_value(raw_sn: str) -> str:
 
 def _infer_tplink_mode_from_lineprofile(lineprofile_id: str, raw_line: str = "") -> str:
     """
-    Inferencia conservadora del modo TP-Link a partir del perfil de línea.
+    Inferencia conservadora del modo TP-Link a partir del perfil de l├¡nea.
 
     Criterio actual:
     - lineprofile 0 -> BRIDGE
     - cualquier otro lineprofile -> ROUTER
-    - si el texto de la línea trae señales explícitas, se respetan primero
+    - si el texto de la l├¡nea trae se├▒ales expl├¡citas, se respetan primero
     """
     line_lower = (raw_line or "").lower()
     if "flow-mapping-default-hgu" in line_lower or " veip" in line_lower:
@@ -473,7 +475,7 @@ def parse_tplink_running_config(file_path: str) -> Dict[Tuple[int, int], Dict[st
 
 def parse_running_config_auto(file_path: str, forced_origin: Optional[str] = None):
     """
-    Parser de running-config con detección o forzado de origen.
+    Parser de running-config con detecci├│n o forzado de origen.
     Retorna (running_map, origin_detected).
     """
     origin = (forced_origin or "auto").strip().lower()
@@ -647,7 +649,7 @@ def parse_mac_table_auto(
     forced_origin: Optional[str] = None,
 ):
     """
-    Parser de MAC table con detección o forzado de origen.
+    Parser de MAC table con detecci├│n o forzado de origen.
     Retorna (mac_records, origin_detected).
     """
     origin = (forced_origin or "auto").strip().lower()
@@ -784,6 +786,188 @@ def _merge_tplink_wan_maps(
     return merged
 
 
+def _resolve_plink_path() -> str:
+    configured = getattr(config, "TPLINK_PLINK_PATH", "")
+    if configured and os.path.exists(configured):
+        return configured
+
+    for candidate in ("plink.exe", "plink"):
+        resolved = shutil.which(candidate)
+        if resolved:
+            return resolved
+
+    default_path = r"C:\Program Files\PuTTY\plink.exe"
+    if os.path.exists(default_path):
+        return default_path
+
+    return ""
+
+
+
+
+def query_tplink_onu_pppoe_from_telnet(
+    host: str,
+    username: str,
+    password: str,
+    port: int,
+    running_map: Dict[Tuple[int, int], Dict[str, str]],
+    logger=None,
+) -> Dict[Tuple[int, int], Dict[str, str]]:
+    """
+    Consulta ONU WAN info vía telnet usando select() para lectura robusta.
+    Comando: show ont wan 1/0/{pon} {ont_id}
+    
+    Lógica:
+    - Si encuentra PPPoE user en CUALQUIER WAN → ROUTER con ese user
+    - Si NO encuentra PPPoE en NINGUNA WAN → BRIDGE
+    - Retorna TODOS los ONTs consultados (online)
+    """
+    if logger:
+        logger(f"[INFO] TELNET TP-LINK -> {host}:{port} user={username}")
+        logger(f"[INFO] Total ONTs a consultar: {len(running_map)}")
+
+    results: Dict[Tuple[int, int], Dict[str, str]] = {}
+    consulted = 0
+    with_pppoe = 0
+    bridge_mode = 0
+    failed = 0
+    
+    def read_with_timeout(tn, timeout_sec=1):
+        """Lee datos disponibles sin bloquearse usando select()"""
+        try:
+            sock = tn.get_socket()
+            if not sock:
+                return b""
+            readable, _, _ = select.select([sock], [], [], timeout_sec)
+            if readable:
+                return tn.read_very_eager()
+        except:
+            pass
+        return b""
+    
+    try:
+        # Conectar telnet
+        tn = telnetlib.Telnet(host, port, timeout=10)
+        
+        # Login
+        if logger:
+            logger(f"[DEBUG] Esperando User prompt...")
+        tn.read_until(b"User:", timeout=5)
+        
+        tn.write(username.encode() + b"\r\n")
+        tn.read_until(b"Password:", timeout=5)
+        
+        tn.write(password.encode() + b"\r\n")
+        tn.read_until(b">", timeout=5)
+        if logger:
+            logger(f"[DEBUG] Login exitoso")
+        
+        # Entrar en enable mode
+        tn.write(b"enable\r\n")
+        tn.read_until(b"#", timeout=5)
+        if logger:
+            logger(f"[DEBUG] Enable mode activado")
+        
+        # Procesar cada ONT en running_map
+        for pon_port, onu_id in sorted(running_map.keys()):
+            wan_cmd = f"show ont wan 1/0/{pon_port} {onu_id}"
+            consulted += 1
+            
+            try:
+                tn.write(wan_cmd.encode() + b"\r\n")
+                time.sleep(0.5)
+                
+                # Leer respuesta con paging usando select()
+                full_output = b""
+                paging_count = 0
+                
+                for iteration in range(50):  # Max 50 iteraciones
+                    chunk = read_with_timeout(tn, timeout_sec=1)
+                    
+                    if not chunk:
+                        break
+                    
+                    full_output += chunk
+                    
+                    # Si contiene paging, presionar ENTER
+                    if b"Press any key to continue" in chunk:
+                        paging_count += 1
+                        tn.write(b"\r\n")
+                        time.sleep(0.2)
+                    
+                    # Si terminó (contiene prompt #), salir
+                    if b"#" in chunk:
+                        break
+                
+                wan_output = full_output.decode('utf-8', errors='ignore')
+                
+                # Dividir por separadores y BUSCAR EN TODAS LAS WANs
+                blocks = re.split(r'-{50,}', wan_output)
+                
+                pppoe_user = None
+                ont_mode = "BRIDGE"  # Default: BRIDGE si no hay PPPoE
+                
+                # Recorrer TODOS los bloques WAN para este ONT
+                for block in blocks:
+                    if not block.strip() or len(block) < 100:
+                        continue
+                    
+                    # Verificar que sea del ONT correcto
+                    pon_match = re.search(r'PON\s+ID\s*[:=\s]+(\d+)/(\d+)/(\d+)', block, re.IGNORECASE)
+                    ont_match = re.search(r'ONT\s+ID\s*[:=\s]+(\d+)', block, re.IGNORECASE)
+                    
+                    if not (pon_match and ont_match):
+                        continue
+                    
+                    extracted_pon = int(pon_match.group(3))
+                    extracted_onu = int(ont_match.group(1))
+                    
+                    if (extracted_pon, extracted_onu) != (pon_port, onu_id):
+                        continue
+                    
+                    # BUSCAR PPPoE user en ESTE bloque WAN
+                    user_in_block = _extract_pppoe_user_from_tplink_wan_output(block)
+                    if user_in_block:
+                        # Encontró PPPoE en ESTA WAN → es ROUTER
+                        pppoe_user = user_in_block
+                        ont_mode = "ROUTER"
+                        # NO hacer break, seguir buscando por si hay más
+                        # pero guardaremos el primero que encuentre
+                        if not results.get((pon_port, onu_id)):
+                            # Primera vez que encuentra PPPoE
+                            break
+                
+                # Guardar resultado (incluso sin PPPoE)
+                results[(pon_port, onu_id)] = {
+                    "pppoe_user": pppoe_user or "",  # Vacío si no hay PPPoE
+                    "ont_mode": ont_mode,  # ROUTER si tiene PPPoE, BRIDGE si no
+                    "raw": wan_output,
+                }
+                
+                if pppoe_user:
+                    with_pppoe += 1
+                else:
+                    bridge_mode += 1
+                
+                if logger and consulted % 5 == 0:  # Log cada 5 ONTs
+                    logger(f"[PROGRESS] {consulted}/{len(running_map)} consultados, {with_pppoe} ROUTER (PPPoE), {bridge_mode} BRIDGE (sin PPPoE)")
+            
+            except Exception as e:
+                failed += 1
+                if logger and consulted % 5 == 0:
+                    logger(f"[PROGRESS] {consulted}/{len(running_map)} consultados, {with_pppoe} ROUTER, {bridge_mode} BRIDGE, {failed} errores")
+        
+        tn.close()
+        
+        if logger:
+            logger(f"[OK] Consulta completada: {consulted} consultados, {with_pppoe} ROUTER (PPPoE), {bridge_mode} BRIDGE, {failed} errores")
+        
+        return results
+    
+    except Exception as exc:
+        if logger:
+            logger(f"[ERROR] Telnet failed: {str(exc)[:200]}")
+        return {}
 
 
 def query_tplink_onu_pppoe_from_running(
@@ -794,94 +978,186 @@ def query_tplink_onu_pppoe_from_running(
     running_map: Dict[Tuple[int, int], Dict[str, str]],
     logger=None,
 ) -> Dict[Tuple[int, int], Dict[str, str]]:
+    import queue
+    import threading
 
     if logger:
-        logger(f"[INFO] SSH TP-LINK (Plink Async Streaming) -> {host}:{port}")
+        logger(f"[INFO] SSH TP-LINK (interactive plink) -> {host}:{port} user={username}")
 
-    plink_path = config.TPLINK_PLINK_PATH
-    if not os.path.exists(plink_path):
+    plink_path = _resolve_plink_path()
+    if not plink_path:
         raise FileNotFoundError(f"Binario plink.exe no encontrado en: {plink_path}")
 
     sorted_keys = sorted(running_map.keys(), key=lambda item: (item[0], item[1]))
-    commands = ["terminal length 0"]
-    for pon_port, onu_id in sorted_keys:
-        commands.append(f"show ont wan 1/0/{pon_port} {onu_id}")
 
-    tmp_path = None
-    pw_path = None
+    # Omitir -batch explícitamente.
+    cmd = [
+        plink_path,
+        "-ssh",
+        "-t",
+        "-P", str(port),
+        "-l", username,
+        host,
+    ]
+    extra_args = shlex.split(config.TPLINK_PLINK_ARGS) if config.TPLINK_PLINK_ARGS else []
+    cmd = [cmd[0]] + extra_args + cmd[1:]
+
+    proc = subprocess.Popen(
+        cmd,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
+    )
+
+    password_sent = False
+    shell_ready = False
+    read_error = None
     results: Dict[Tuple[int, int], Dict[str, str]] = {}
+    password_lock = threading.Lock()
+    raw_output_parts: List[str] = []
+
+    def _send_password() -> None:
+        nonlocal password_sent, shell_ready
+        with password_lock:
+            if password_sent:
+                return
+            proc.stdin.write(password + "\r\n")
+            proc.stdin.flush()
+            password_sent = True
+            shell_ready = True
+
+    def _reader() -> None:
+        nonlocal read_error, password_sent, shell_ready
+        buffer = ""
+        try:
+            while True:
+                chunk = proc.stdout.read(1)
+                if chunk == "" or chunk is None:
+                    break
+                raw_output_parts.append(chunk)
+                buffer += chunk
+                lower_buffer = buffer.lower()
+                if (not password_sent) and ("assword:" in lower_buffer or "password:" in lower_buffer):
+                    if logger:
+                        logger("[INFO] Prompt de password detectado; inyectando contraseña")
+                    _send_password()
+        except Exception as exc:
+            read_error = exc
+
+    reader_thread = threading.Thread(target=_reader, daemon=True)
+    reader_thread.start()
+
+    # Si plink no expone el prompt por stdout capturado, enviar la contraseña tras arrancar.
+    wait_password_deadline = time.time() + 3
+    while time.time() < wait_password_deadline and not password_sent:
+        if proc.poll() is not None:
+            break
+        time.sleep(0.05)
+
+    if not password_sent:
+        if logger:
+            logger("[INFO] Enviando contraseña tras espera inicial")
+        _send_password()
+
+    # LOGIN INTERCEPTOR
+    login_timeout = time.time() + 30
+    while time.time() < login_timeout:
+        if read_error:
+            raise RuntimeError(f"Error leyendo stdout de plink: {read_error}")
+        if proc.poll() is not None:
+            break
+
+        if password_sent:
+            break
+
+        time.sleep(0.1)
+
+    if not password_sent:
+        try:
+            proc.terminate()
+        except Exception:
+            pass
+        raise RuntimeError("No se detectó prompt de password en plink")
+
+    # INYECCIÓN DE COMANDOS
+    command_list = ["terminal length 0"]
+    for pon_port, onu_id in sorted_keys:
+        command_list.append(f"show ont wan 1/0/{pon_port} {onu_id}")
+    command_list.append("exit")
+
+    for command in command_list:
+        proc.stdin.write(command + "\r\n")
+        proc.stdin.flush()
 
     try:
-        # 1. Crear temporales primero
-        with tempfile.NamedTemporaryFile("w", delete=False, encoding="utf-8") as tmp:
-            tmp.write("\n".join(commands) + "\nexit\n")
-            tmp_path = tmp.name
+        proc.stdin.close()
+    except Exception:
+        pass
 
-        with tempfile.NamedTemporaryFile("w", delete=False, encoding="utf-8") as pw_file:
-            pw_file.write(password)
-            pw_path = pw_file.name
+    # READING LOOP
+    capture_timeout = time.time() + max(60, len(command_list) * 5)
+    while time.time() < capture_timeout:
+        if read_error:
+            raise RuntimeError(f"Error leyendo stdout de plink: {read_error}")
 
-        # 2. Parsear argumentos y armar comando
-        extra_args = shlex.split(config.TPLINK_PLINK_ARGS) if config.TPLINK_PLINK_ARGS else []
-        cmd = [plink_path] + extra_args + [
-            "-batch",
-            "-ssh",
-            "-P", str(port),
-            "-l", username,
-            "-pwfile", pw_path,
-            host,
-            "-m", tmp_path
-        ]
+        if proc.poll() is not None:
+            break
 
-        # 3. Ejecutar Popen
-        with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1) as proc:
-            current_pon = None
-            current_onu = None
-            current_buffer = ""
+        time.sleep(0.1)
 
-            for line in iter(proc.stdout.readline, ''):
-                clean_line = line.strip()
+    reader_thread.join(timeout=5)
 
-                if clean_line.startswith("show ont wan"):
-                    if current_pon is not None and current_onu is not None:
-                        results[(current_pon, current_onu)] = {
-                            "pppoe_user": _extract_pppoe_user_from_tplink_wan_output(current_buffer),
-                            "ont_mode": _extract_ont_mode_from_tplink_wan_output(current_buffer),
-                            "raw": current_buffer
-                        }
+    full_output = "".join(raw_output_parts)
+    if logger and not shell_ready:
+        logger("[WARN] No se detectó prompt shell explícito; parseando salida recibida")
 
-                    if logger:
-                        logger(f"[INFO] [TPLINK] Consultando: {clean_line}")
+    # PARSEO por cada comando emitido, usando el texto completo capturado.
+    for pon_port, onu_id in sorted_keys:
+        command_marker = f"show ont wan 1/0/{pon_port} {onu_id}"
+        command_index = full_output.lower().find(command_marker.lower())
+        if command_index >= 0:
+            segment_start = command_index + len(command_marker)
+            next_command_index = len(full_output)
+            for next_pon, next_onu in sorted_keys:
+                if (next_pon, next_onu) == (pon_port, onu_id):
+                    continue
+                next_marker = f"show ont wan 1/0/{next_pon} {next_onu}"
+                candidate_index = full_output.lower().find(next_marker.lower(), segment_start)
+                if candidate_index >= 0 and candidate_index < next_command_index:
+                    next_command_index = candidate_index
+            text = full_output[segment_start:next_command_index]
+        else:
+            text = full_output
 
-                    parts = clean_line.split()
-                    if len(parts) >= 5:
-                        current_pon = int(parts[3].split('/')[-1])
-                        current_onu = int(parts[4])
-                    current_buffer = ""
+        pon_match = re.search(r"PON\s+ID\s*:\s*(\d+)", text, re.IGNORECASE)
+        ont_match = re.search(r"ONT\s+ID\s*:\s*(\d+)", text, re.IGNORECASE)
 
-                elif clean_line:
-                    current_buffer += line
-                    if "Connection type" in clean_line or "username" in clean_line.lower():
-                        if logger:
-                            logger(f"[INFO] [TPLINK]   -> {clean_line}")
+        if not (pon_match and ont_match):
+            continue
 
-            if current_pon is not None and current_onu is not None:
-                results[(current_pon, current_onu)] = {
-                    "pppoe_user": _extract_pppoe_user_from_tplink_wan_output(current_buffer),
-                    "ont_mode": _extract_ont_mode_from_tplink_wan_output(current_buffer),
-                    "raw": current_buffer
-                }
+        extracted_pon = int(pon_match.group(1))
+        extracted_onu = int(ont_match.group(1))
+        current_key = (extracted_pon, extracted_onu)
+        pppoe_user = _extract_pppoe_user_from_tplink_wan_output(text)
+        ont_mode = _extract_ont_mode_from_tplink_wan_output(text)
+        results[current_key] = {
+            "pppoe_user": pppoe_user,
+            "ont_mode": ont_mode,
+            "raw": text,
+        }
 
-        proc.wait(timeout=180)
-        
-    finally:
-        # 4. Limpiar basura con validación de existencia
-        if tmp_path:
-            try: os.remove(tmp_path)
-            except Exception: pass
-        if pw_path:
-            try: os.remove(pw_path)
-            except Exception: pass
+    if not results and logger:
+        logger(full_output)
+
+    try:
+        proc.wait(timeout=10)
+    except Exception:
+        try:
+            proc.kill()
+        except Exception:
+            pass
 
     return results
 
@@ -895,6 +1171,7 @@ def build_migration_rows_from_tplink_running(
 ):
     rows = []
     matched = 0
+    bridge_counter = 1
     stats = {
         "final_router": 0,
         "final_bridge": 0,
@@ -910,7 +1187,9 @@ def build_migration_rows_from_tplink_running(
     for (pon_port, onu_id), info in sorted(running_map.items(), key=lambda x: (x[0][0], x[0][1])):
         wan = tplink_wan_map.get((pon_port, onu_id), {})
         user = (wan.get("pppoe_user") or "").strip()
-        if not user:
+        ont_mode_source = (wan.get("ont_mode") or info.get("ont_mode") or "ROUTER").strip().upper()
+
+        if not user and ont_mode_source != "BRIDGE":
             continue
 
         matched += 1
@@ -924,7 +1203,7 @@ def build_migration_rows_from_tplink_running(
 
         sn_clean = str(info.get("sn", "")).replace(":", "")
         ont_model = (info.get("ont_model") or "").strip() or TPLINK_DEFAULT_ONT_MODEL
-        base_mode = (wan.get("ont_mode") or info.get("ont_mode") or "ROUTER").strip().upper()
+        base_mode = ont_mode_source
         if base_mode not in {"ROUTER", "BRIDGE"}:
             base_mode = "ROUTER"
 
@@ -934,6 +1213,10 @@ def build_migration_rows_from_tplink_running(
         else:
             stats["final_bridge"] += 1
         stats["source_profile_fallback"] += 1
+
+        if not user:
+            user = f"migracion{bridge_counter:02d}"
+            bridge_counter += 1
 
         rows.append(
             {
@@ -1010,7 +1293,7 @@ def delete_mikrotik_ppp_secret(host: str, username: str, password: str, secret_n
     Elimina un secret por nombre en /ppp/secret.
 
     Retorna True si pudo eliminarlo, False si no existe.
-    Lanza excepción si hay error de API/conectividad o si falla el borrado.
+    Lanza excepci├│n si hay error de API/conectividad o si falla el borrado.
     """
     target = str(secret_name or "").strip()
     if not target:
@@ -1086,7 +1369,7 @@ def build_pon_destino(
         return ""
 
     if destination_base0 is None:
-        # Compatibilidad hacia atrás: Huawei base 0, ZTE base 1.
+        # Compatibilidad hacia atr├ís: Huawei base 0, ZTE base 1.
         apply_base0 = vendor == "huawei"
     else:
         apply_base0 = bool(destination_base0)

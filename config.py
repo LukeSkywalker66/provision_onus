@@ -27,6 +27,9 @@ def _load_olt_config(olt_number):
     - OLT_{N}_PASSWORD: Password SSH
     - OLT_{N}_PORT: Puerto SSH (default: 22)
     - OLT_{N}_VENDOR: Fabricante (huawei | zte)
+    - OLT_{N}_DEST_BOARD: Placa destino sugerida para CSV (opcional, ej: 1/4)
+    - OLT_{N}_ZTE_TCONT_PROFILE: Perfil TCONT ZTE para inyeccion (opcional)
+    - OLT_{N}_ZTE_DOWN_PROFILE: Perfil DOWN (traffic-policy) ZTE (opcional)
     """
     prefix = f"OLT_{olt_number}"
     name = os.getenv(f"{prefix}_NAME")
@@ -40,6 +43,9 @@ def _load_olt_config(olt_number):
         "password": os.getenv(f"{prefix}_PASSWORD"),
         "port": int(os.getenv(f"{prefix}_PORT", 22)),
         "fabricante": os.getenv(f"{prefix}_VENDOR", "huawei"),
+        "destination_board": os.getenv(f"{prefix}_DEST_BOARD", "").strip(),
+        "zte_tcont_profile": os.getenv(f"{prefix}_ZTE_TCONT_PROFILE", "").strip(),
+        "zte_down_profile": os.getenv(f"{prefix}_ZTE_DOWN_PROFILE", "").strip(),
     }
 
 
@@ -459,6 +465,12 @@ HUAWEI_INJECTION = {
     ).strip().lower() in {"1", "true", "yes", "on"},
 }
 
+ZTE_INJECTION = {
+    "vlan_id": os.getenv("ZTE_INJECTION_VLAN_ID", "700"),
+    "tcont_profile": os.getenv("ZTE_INJECTION_TCONT_PROFILE", "SMARTOLT-300Mbps-UP"),
+    "down_profile": os.getenv("ZTE_INJECTION_DOWN_PROFILE", "SMARTOLT-300Mbps-DOWN"),
+}
+
 # Mapeo de modelos ONT a perfiles (line_profile_id, service_profile_id)
 _ONT_MODE_PROFILES = _parse_ont_mode_profiles(os.getenv("HUAWEI_ONT_MODE_PROFILES", ""))
 
@@ -475,6 +487,13 @@ def get_huawei_injection_params():
     - require_explicit_model_profile: bool
     """
     return HUAWEI_INJECTION.copy()
+
+
+def get_zte_injection_params():
+    """
+    Retorna diccionario con parámetros de inyección ZTE desde config.
+    """
+    return ZTE_INJECTION.copy()
 
 
 def has_explicit_huawei_profile_for_model(ont_model: str) -> bool:

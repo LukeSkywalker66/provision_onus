@@ -13,7 +13,7 @@ from zte_injection_ui import ZTEInjectionWindow
 from huawei_injection_ui import HuaweiInjectionWindow
 from csv_logic import parse_smartolt_csv
 from ssh_client import connect_olt, close_olt
-from config import HUAWEI_INJECTION_OLT_NAME, OLT_MAP
+from config import HUAWEI_INJECTION_OLT_NAME, OLT_MAP, get_zte_injection_params
 from omci import provision_onu, rollback_onu_serviceport, check_onu_tr069_profile, get_onus_with_tr069_bulk
 from datetime import datetime
 
@@ -380,7 +380,15 @@ def main():
             migration_window["ref"].focus_force()
 
     def on_open_zte_injection():
-        zte_cfg = OLT_MAP.get("ZTE C600", {})
+        def _is_zte_olt(olt_name, cfg):
+            vendor = (cfg.get("fabricante") or "").strip().lower()
+            name_text = (olt_name or "").strip().lower()
+            return "zte" in vendor or "zte" in name_text
+
+        zte_olts = {name: cfg for name, cfg in OLT_MAP.items() if _is_zte_olt(name, cfg)}
+        default_zte_name = "ZTE C600" if "ZTE C600" in zte_olts else next(iter(zte_olts), "")
+        zte_cfg = zte_olts.get(default_zte_name, {})
+        zte_params = get_zte_injection_params()
         if zte_injection_window["ref"] is None or not zte_injection_window["ref"].winfo_exists():
             zte_injection_window["ref"] = ZTEInjectionWindow(
                 ui,
@@ -388,6 +396,9 @@ def main():
                 default_user=zte_cfg.get("user", ""),
                 default_password=zte_cfg.get("password", ""),
                 default_port=zte_cfg.get("port", 22),
+                default_vlan_id=zte_params.get("vlan_id", "700"),
+                default_olt_name=default_zte_name,
+                olt_options=zte_olts,
             )
         else:
             zte_injection_window["ref"].lift()

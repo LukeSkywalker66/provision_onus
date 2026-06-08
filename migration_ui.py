@@ -13,7 +13,7 @@ from migration_bdcom import (
     get_mac_vendor_heuristic_diagnostics,
     parse_mac_table_auto,
     parse_running_config_auto,
-    query_tplink_onu_pppoe_from_running,
+    query_tplink_onu_pppoe_from_telnet,
     query_mikrotik_pppoe_users,
 )
 from config import MIKROTIK_MAP, OLT_MAP
@@ -33,9 +33,11 @@ class MigrationBDCOMWindow(tk.Toplevel):
         self.mikrotik_pass = tk.StringVar()
         self.mikrotik_port = tk.StringVar(value="8728")
         self.destination_vendor = tk.StringVar(value="zte")
+        self.destination_olt = tk.StringVar()
         self.destination_board = tk.StringVar()
         self.destination_base0 = tk.BooleanVar(value=False)
         self._mikrotik_options = {}
+        self._destination_olt_options = {}
         self._log_path = None
 
         self._build()
@@ -74,32 +76,46 @@ class MigrationBDCOMWindow(tk.Toplevel):
         tk.Label(frame_mk, text="Puerto:").grid(row=1, column=6, sticky="w", padx=6, pady=4)
         tk.Entry(frame_mk, textvariable=self.mikrotik_port, width=8).grid(row=1, column=7, padx=6, pady=4)
         tk.Label(frame_mk, text="Destino CSV:").grid(row=2, column=0, sticky="w", padx=6, pady=4)
-        ttk.Combobox(
+        self.cmb_destination_vendor = ttk.Combobox(
             frame_mk,
             textvariable=self.destination_vendor,
             values=["zte", "huawei"],
             state="readonly",
             width=12,
-        ).grid(row=2, column=1, padx=6, pady=4, sticky="w")
+        )
+        self.cmb_destination_vendor.grid(row=2, column=1, padx=6, pady=4, sticky="w")
+        self.cmb_destination_vendor.bind("<<ComboboxSelected>>", self._on_destination_vendor_change)
+
+        tk.Label(frame_mk, text="OLT destino:").grid(row=2, column=2, sticky="w", padx=6, pady=4)
+        self.cmb_destination_olt = ttk.Combobox(
+            frame_mk,
+            textvariable=self.destination_olt,
+            state="readonly",
+            width=38,
+        )
+        self.cmb_destination_olt.grid(row=2, column=3, columnspan=3, padx=6, pady=4, sticky="w")
+        self.cmb_destination_olt.bind("<<ComboboxSelected>>", self._on_select_destination_olt)
+
         tk.Checkbutton(
             frame_mk,
             text="Destino base 0",
             variable=self.destination_base0,
-        ).grid(row=2, column=2, sticky="w", padx=6, pady=4)
+        ).grid(row=2, column=6, sticky="w", padx=6, pady=4)
 
         tk.Label(
             frame_mk,
             text="Placa destino (slot/placa o frame/slot, ej: 1/4 o 0/1):",
-        ).grid(row=2, column=3, columnspan=3, sticky="w", padx=6, pady=4)
+        ).grid(row=3, column=0, columnspan=3, sticky="w", padx=6, pady=4)
         tk.Entry(frame_mk, textvariable=self.destination_board, width=16).grid(
-            row=2,
-            column=6,
+            row=3,
+            column=3,
             padx=6,
             pady=4,
             sticky="w",
         )
 
         self._load_mikrotik_options()
+        self._load_destination_olt_options()
 
         frame_actions = tk.Frame(self)
         frame_actions.pack(fill="x", padx=10, pady=8)
@@ -168,6 +184,52 @@ class MigrationBDCOMWindow(tk.Toplevel):
     def _on_select_mikrotik(self, _event=None):
         self._apply_mikrotik_node(self.mikrotik_node.get())
 
+    def _load_destination_olt_options(self):
+        self._destination_olt_options = {}
+        labels = []
+        vendor = self.destination_vendor.get().strip().lower()
+
+        for name, cfg in OLT_MAP.items():
+            cfg_vendor = str(cfg.get("fabricante", "")).strip().lower()
+            if cfg_vendor != vendor:
+                continue
+
+            ip = cfg.get("ip", "")
+            board = str(cfg.get("destination_board", "")).strip()
+            board_hint = f" | board={board}" if board else ""
+            label = f"{name} ({ip}){board_hint}"
+            self._destination_olt_options[label] = (name, cfg)
+            labels.append(label)
+
+        self.cmb_destination_olt["values"] = labels
+        if not labels:
+            self.destination_olt.set("")
+            return
+
+        current = self.destination_olt.get()
+        if current in labels:
+            self._apply_destination_olt(current)
+            return
+
+        self.destination_olt.set(labels[0])
+        self._apply_destination_olt(labels[0])
+
+    def _apply_destination_olt(self, label: str):
+        selected = self._destination_olt_options.get(label)
+        if not selected:
+            return
+
+        _, cfg = selected
+        suggested_board = str(cfg.get("destination_board", "")).strip()
+        if suggested_board and not self.destination_board.get().strip():
+            self.destination_board.set(suggested_board)
+
+    def _on_destination_vendor_change(self, _event=None):
+        self._load_destination_olt_options()
+
+    def _on_select_destination_olt(self, _event=None):
+        self._apply_destination_olt(self.destination_olt.get())
+
     def _validate_inputs(self):
         if not self.running_path.get() or not os.path.exists(self.running_path.get()):
             raise ValueError("Selecciona un archivo valido para Running Config OLT")
@@ -186,6 +248,22 @@ class MigrationBDCOMWindow(tk.Toplevel):
         destination_vendor = self.destination_vendor.get().strip().lower()
         if destination_vendor not in {"zte", "huawei"}:
             raise ValueError("Destino CSV invalido (usar zte u huawei)")
+
+        destination_label = self.destination_olt.get().strip()
+        if not destination_label:
+            raise ValueError("Selecciona una OLT destino para la migracion")
+
+        selected = self._destination_olt_options.get(destination_label)
+        if not selected:
+            raise ValueError("OLT destino invalida. Vuelve a seleccionarla")
+
+        _, cfg = selected
+        selected_vendor = str(cfg.get("fabricante", "")).strip().lower()
+        if selected_vendor != destination_vendor:
+            raise ValueError(
+                "La OLT destino seleccionada no coincide con el tipo de destino CSV "
+                f"({destination_vendor})."
+            )
 
     def _resolve_tplink_olt_for_migration(self):
         preferred_name = "TpLink_villadolores"
@@ -214,6 +292,7 @@ class MigrationBDCOMWindow(tk.Toplevel):
             self._write(f"[log] Registrando en: {self._log_path}")
             self.status.config(text="Procesando...")
             self._validate_inputs()
+            self._write(f"[INFO] OLT destino seleccionada: {self.destination_olt.get().strip()}")
 
             heur = get_mac_vendor_heuristic_diagnostics()
             self._write(
@@ -239,13 +318,13 @@ class MigrationBDCOMWindow(tk.Toplevel):
                     f"[2/4] Consultando ONTs TP-LINK via SSH (solo lectura) en {olt_name} {olt_cfg.get('ip')}:{olt_cfg.get('port')}..."
                 )
                 self._write(
-                    "[INFO] Comandos permitidos en esta fase: enable, terminal length 0, show ont wan ..."
+                    "[INFO] Conexión telnet a puerto 2123, comandos: terminal length 0, show ont wan ..."
                 )
-                tplink_wan_map = query_tplink_onu_pppoe_from_running(
+                tplink_wan_map = query_tplink_onu_pppoe_from_telnet(
                     host=str(olt_cfg.get("ip", "")).strip(),
                     username=str(olt_cfg.get("user", "")).strip(),
                     password=str(olt_cfg.get("password", "")),
-                    port=int(olt_cfg.get("port", 22)),
+                    port=2123,
                     running_map=running_map,
                     logger=self._write,
                 )
@@ -254,8 +333,13 @@ class MigrationBDCOMWindow(tk.Toplevel):
                     for item in tplink_wan_map.values()
                     if str(item.get("pppoe_user", "")).strip()
                 )
+                bridge_hits = sum(
+                    1
+                    for item in tplink_wan_map.values()
+                    if str(item.get("ont_mode", "")).strip() == "BRIDGE"
+                )
                 self._write(
-                    f"[OK] Consulta TP-LINK finalizada: ONTs consultadas={len(tplink_wan_map)} con PPPoE={pppoe_hits}"
+                    f"[OK] Consulta TP-LINK finalizada: ONTs consultadas={len(tplink_wan_map)} (ROUTER con PPPoE={pppoe_hits}, BRIDGE={bridge_hits})"
                 )
 
                 self._write("[3/4] Construyendo CSV final de migracion (fuente PPPoE desde TP-LINK)...")
