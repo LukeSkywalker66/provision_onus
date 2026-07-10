@@ -2,39 +2,1849 @@
 
 
   Huawei Integrated Access Software (MA5608T).
-  Copyright(C) Huawei Technologies Co., Ltd. 2002-2013. All rights reserved.
+  Copyright(C) Huawei Technologies Co., Ltd. 2002-2014. All rights reserved.
 
   -----------------------------------------------------------------------------
   User last login information:
   -----------------------------------------------------------------------------
   Access Type : Telnet 
-  IP-Address  : 10.11.104.4
-  Login  Time : 2026-06-03 09:47:36-03:00
-  Logout Time : 2026-06-03 09:47:49-03:00
+  IP-Address  : 10.11.104.10
+  Login  Time : 2026-07-10 09:58:05-03:00
+  Logout Time : 2026-07-10 09:58:07-03:00
   -----------------------------------------------------------------------------
 
-MA5608T>
+OLT_SanJose>
 
-MA5608T>
+OLT_SanJose>
 
-MA5608T>screen-length0temporary
-        ^
+OLT_SanJose>screen-length0temporary
+            ^
   % Unknown command, the error locates at '^'
 
-MA5608T>enable
+OLT_SanJose>enable
 
-MA5608T#config
+OLT_SanJose#config
 
-MA5608T(config)#service-port vlan 150 gpon 0/1/11 ont 32 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+OLT_SanJose(config)#display ont tr069-server-profile all
+ --------------------------------------------------------------
+ Profile ID     Profile Name                     Binding Times 
+ --------------------------------------------------------------
+ 1              Tr069                            512           
+ --------------------------------------------------------------
+ Total: 1
 
-MA5608T(config)#interface gpon 0/1
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 0 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 8
 
-MA5608T(config-if-gpon-0/1)#ont ipconfig 11 32 ip-index 0 dhcp vlan 150 priority 2
+OLT_SanJose(config)#interface gpon 0/0
 
-MA5608T(config-if-gpon-0/1)#ont tr069-server-config 11 32 profile-id 1
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 0 ip-index 0 dhcp vlan 150 priority 2
 
-MA5608T(config-if-gpon-0/1)#quit
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 0 profile-id 1
 
-MA5608T(config)#
+OLT_SanJose(config-if-gpon-0/0)#quit
 
-MA5608T(config)#quit
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 1 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 1 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 1 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 2 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 647
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 2 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 2 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 3 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 651
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 3 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 3 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 4 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 217
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 4 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 4 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 6 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 773
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 6 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 6 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 7 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 7 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 7 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 8 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 640
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 8 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 8 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 9 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 627
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 9 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 9 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 10 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 672
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 10 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 10 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 11 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 615
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 11 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 11 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 12 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 551
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 12 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 12 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 13 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 44
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 13 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 13 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 15 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 497
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 15 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 15 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 16 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 422
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 16 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 16 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 17 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 389
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 17 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 17 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 18 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 374
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 18 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 18 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 19 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 401
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 19 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 19 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 21 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 390
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 21 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 21 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 22 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 410
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 22 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 22 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 23 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 318
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 23 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 23 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 24 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 418
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 24 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 24 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 25 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 729
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 25 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 25 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 26 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 718
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 26 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 26 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 27 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 716
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 27 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 27 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 28 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 28 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 28 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 29 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 521
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 29 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 29 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 30 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 536
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 30 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 30 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 31 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 778
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 31 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 31 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 32 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 477
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 32 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 32 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 33 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 560
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 33 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 33 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 35 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 678
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 35 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 35 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 37 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 624
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 37 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 37 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 38 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 488
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 38 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 38 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 39 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 39 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 39 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 41 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 1428
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 41 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 41 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 43 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 446
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 43 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 43 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 44 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 338
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 44 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 44 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 50 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 314
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 50 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 50 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 51 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 336
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 51 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 51 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 60 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 60 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 60 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 61 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 61 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 61 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 62 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 62 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 62 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 63 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 63 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 63 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 64 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 64 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 64 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 65 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 65 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 65 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/0 ont 66 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 0 66 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 0 66 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 3 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 785
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 3 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 3 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 4 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 612
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 4 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 4 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 5 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 623
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 5 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 5 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 6 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 669
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 6 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 6 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 8 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 802
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 8 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 8 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 9 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 768
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 9 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 9 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 10 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 567
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 10 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 10 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 11 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 767
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 11 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 11 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 12 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 601
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 12 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 12 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 14 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 701
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 14 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 14 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 15 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 582
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 15 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 15 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 16 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 365
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 16 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 16 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 17 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 386
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 17 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 17 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 18 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 393
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 18 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 18 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 19 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 381
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 19 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 19 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 20 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 708
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 20 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 20 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 21 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 752
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 21 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 21 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 22 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 522
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 22 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 22 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 23 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 719
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 23 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 23 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 24 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 531
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 24 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 24 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 25 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 513
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 25 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 25 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 26 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 506
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 26 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 26 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 27 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 782
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 27 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 27 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 29 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 347
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 29 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 29 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 30 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 562
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 30 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 30 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 31 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 780
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 31 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 31 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 37 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 690
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 37 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 37 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 38 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 693
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 38 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 38 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 41 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 724
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 41 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 41 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 43 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 43 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 43 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 44 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 458
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 44 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 44 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 45 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 463
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 45 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 45 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 46 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 437
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 46 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 46 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 48 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 798
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 48 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 48 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 49 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 564
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 49 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 49 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 51 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 807
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 51 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 51 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 57 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 300
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 57 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 57 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 59 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 528
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 59 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 59 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 60 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 324
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 60 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 60 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 63 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 471
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 63 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 63 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 69 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 69 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 69 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 70 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 70 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 70 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 72 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 72 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 72 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 73 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 73 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 73 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 74 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 74 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 74 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 75 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 75 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 75 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 76 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 76 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 76 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 77 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 77 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 77 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/1 ont 78 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 1 78 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 1 78 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 1 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 1 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 1 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 3 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 459
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 3 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 3 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 4 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 654
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 4 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 4 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 5 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 5 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 5 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 6 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 665
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 6 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 6 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 7 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 653
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 7 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 7 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 8 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 800
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 8 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 8 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 9 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 606
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 9 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 9 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 10 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 426
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 10 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 10 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 11 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 639
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 11 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 11 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 12 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 632
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 12 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 12 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 13 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 765
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 13 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 13 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 15 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 663
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 15 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 15 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 16 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 641
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 16 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 16 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 17 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 633
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 17 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 17 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 18 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 18 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 18 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 19 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 392
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 19 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 19 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 21 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 5
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 21 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 21 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 23 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 452
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 23 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 23 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 25 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 656
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 25 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 25 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 26 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 657
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 26 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 26 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 27 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 611
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 27 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 27 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 28 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 28 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 28 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 31 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 519
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 31 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 31 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 33 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 597
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 33 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 33 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 34 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 348
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 34 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 34 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 35 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 360
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 35 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 35 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 36 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 491
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 36 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 36 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 37 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 770
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 37 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 37 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 38 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 311
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 38 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 38 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 41 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 574
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 41 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 41 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 42 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 728
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 42 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 42 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 44 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 486
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 44 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 44 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 45 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 803
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 45 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 45 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 46 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 717
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 46 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 46 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 47 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 222
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 47 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 47 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 48 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 340
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 48 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 48 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 49 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 419
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 49 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 49 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 50 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 1248
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 50 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 50 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 52 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 779
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 52 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 52 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 53 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 503
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 53 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 53 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 56 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 692
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 56 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 56 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 57 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 687
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 57 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 57 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 58 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 696
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 58 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 58 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 59 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 684
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 59 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 59 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 60 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 677
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 60 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 60 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 61 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 675
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 61 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 61 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 62 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 764
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 62 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 62 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 65 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 483
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 65 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 65 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 67 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 335
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 67 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 67 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 68 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 68 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 68 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 69 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 591
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 69 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 69 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 71 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 431
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 71 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 71 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 75 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 299
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 75 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 75 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 79 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 294
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 79 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 79 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 84 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 21
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 84 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 84 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 87 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+  Failure: Service virtual port has existed already
+  Conflicted service virtual port index: 786
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 87 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 87 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 88 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 88 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 88 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 89 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 89 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 89 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#service-port vlan 150 gpon 0/0/2 ont 91 gemport 2 multi-service user-vlan 150 tag-transform translate inbound traffic-table index 7 outbound traffic-table index 7
+
+OLT_SanJose(config)#interface gpon 0/0
+
+OLT_SanJose(config-if-gpon-0/0)#ont ipconfig 2 91 ip-index 0 dhcp vlan 150 priority 2
+
+OLT_SanJose(config-if-gpon-0/0)#ont tr069-server-config 2 91 profile-id 1
+
+OLT_SanJose(config-if-gpon-0/0)#quit
+
+OLT_SanJose(config)#
